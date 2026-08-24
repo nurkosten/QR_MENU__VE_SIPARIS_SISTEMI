@@ -1,13 +1,123 @@
-@model DashboardStatsDto
+﻿@model DashboardStatsDto
 @{
     ViewData["Title"] = "Özet";
 }
-<h1 class="h4 page-title mb-4">Günlük özet</h1>
-<div class="row g-3">
-    <div class="col-md-4"><div class="card p-3 stat-card">Bugünkü sipariş<br /><strong>@Model.TodayOrderCount</strong></div></div>
-    <div class="col-md-4"><div class="card p-3 stat-card">Bugünkü satış<br /><strong>@Model.TodaySales.ToString("C")</strong></div></div>
-    <div class="col-md-4"><div class="card p-3 stat-card">Açık sipariş<br /><strong>@Model.OpenOrderCount</strong></div></div>
-    <div class="col-md-4"><div class="card p-3 stat-card">Bekleyen çağrı<br /><strong>@Model.PendingServiceRequestCount</strong></div></div>
-    <div class="col-md-4"><div class="card p-3 stat-card">Aktif masa<br /><strong>@Model.ActiveTableCount</strong></div></div>
-    <div class="col-md-4"><div class="card p-3 stat-card">Satıştaki ürün<br /><strong>@Model.AvailableProductCount</strong></div></div>
+
+<div class="page-head">
+    <div>
+        <h1>Günlük özet</h1>
+        <p class="page-sub">@DateTime.Now.ToString("dd MMMM yyyy") · işletmenin anlık durumu</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-dark btn-sm" asp-controller="Reports" asp-action="Index">
+            <partial name="_Icon" model='"chart"' /> Raporlar
+        </a>
+        <a class="btn btn-primary btn-sm" asp-controller="Orders" asp-action="Index">
+            <partial name="_Icon" model='"receipt"' /> Siparişler
+        </a>
+    </div>
+</div>
+
+<div class="stat-grid mb-4">
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Bugünkü sipariş</span>
+            <span class="stat-icon info"><partial name="_Icon" model='"receipt"' /></span>
+        </div>
+        <div class="stat-value">@Model.TodayOrderCount</div>
+        <div class="stat-foot">Gün başından itibaren alınan sipariş</div>
+    </div>
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Bugünkü ciro</span>
+            <span class="stat-icon ok"><partial name="_Icon" model='"cash"' /></span>
+        </div>
+        <div class="stat-value">@Model.TodaySales.ToString("C")</div>
+        <div class="stat-foot">Tamamlanan siparişlerin toplamı</div>
+    </div>
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Açık sipariş</span>
+            <span class="stat-icon warn"><partial name="_Icon" model='"clock"' /></span>
+        </div>
+        <div class="stat-value">@Model.OpenOrderCount</div>
+        <div class="stat-foot">Mutfak ve serviste bekleyen</div>
+    </div>
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Bekleyen çağrı</span>
+            <span class="stat-icon prep"><partial name="_Icon" model='"bell"' /></span>
+        </div>
+        <div class="stat-value">@Model.PendingServiceRequestCount</div>
+        <div class="stat-foot">Garson ve hesap talepleri</div>
+    </div>
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Aktif masa</span>
+            <span class="stat-icon"><partial name="_Icon" model='"table"' /></span>
+        </div>
+        <div class="stat-value">@Model.ActiveTableCount</div>
+        <div class="stat-foot">QR menüsü yayında olan masa</div>
+    </div>
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Satıştaki ürün</span>
+            <span class="stat-icon slate"><partial name="_Icon" model='"dish"' /></span>
+        </div>
+        <div class="stat-value">@Model.AvailableProductCount</div>
+        <div class="stat-foot">Menüde görünen aktif ürün</div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <div class="panel">
+        <div class="panel-head">
+            <h2 class="panel-title">Hızlı işlemler</h2>
+        </div>
+        <a class="list-row" asp-controller="Products" asp-action="Create">
+            <span class="list-row-main">
+                <span class="list-row-title d-block">Yeni ürün ekle</span>
+                <span class="list-row-sub">Menüye ürün, fiyat ve görsel tanımlayın</span>
+            </span>
+            <partial name="_Icon" model='"arrow-right"' />
+        </a>
+        <a class="list-row" asp-controller="Categories" asp-action="Create">
+            <span class="list-row-main">
+                <span class="list-row-title d-block">Yeni kategori ekle</span>
+                <span class="list-row-sub">Menü bölümlerini düzenleyin</span>
+            </span>
+            <partial name="_Icon" model='"arrow-right"' />
+        </a>
+        <a class="list-row" asp-controller="Tables" asp-action="Create">
+            <span class="list-row-main">
+                <span class="list-row-title d-block">Masa ve QR oluştur</span>
+                <span class="list-row-sub">Masaya özel QR kodu üretin</span>
+            </span>
+            <partial name="_Icon" model='"arrow-right"' />
+        </a>
+        <a class="list-row" asp-controller="Users" asp-action="Create">
+            <span class="list-row-main">
+                <span class="list-row-title d-block">Kullanıcı tanımla</span>
+                <span class="list-row-sub">Personel ve mutfak hesapları</span>
+            </span>
+            <partial name="_Icon" model='"arrow-right"' />
+        </a>
+    </div>
+
+    <div class="panel">
+        <div class="panel-head">
+            <h2 class="panel-title">Operasyon ekranları</h2>
+        </div>
+        <div class="panel-body">
+            <p class="text-muted">Servis sırasında kullanılan canlı ekranlar. Personel ekranı servis ve çağrıları, mutfak ekranı hazırlık kuyruğunu yönetir.</p>
+            <div class="d-flex gap-2 flex-wrap">
+                <a class="btn btn-soft btn-sm" asp-area="Staff" asp-controller="StaffOrders" asp-action="Index">
+                    <partial name="_Icon" model='"clipboard"' /> Personel ekranı
+                </a>
+                <a class="btn btn-soft btn-sm" asp-area="Kitchen" asp-controller="KitchenOrders" asp-action="Index">
+                    <partial name="_Icon" model='"flame"' /> Mutfak ekranı
+                </a>
+            </div>
+        </div>
+    </div>
 </div>

@@ -1,86 +1,153 @@
-@using Microsoft.AspNetCore.Mvc.Rendering
-@model MenuPageViewModel
+﻿@model MenuPageViewModel
 @{
     ViewData["Title"] = Model.Restaurant.Name;
-    var i = 0;
+    var visibleCategories = Model.Categories.Where(c => c.Products.Count > 0).ToList();
+    var productCount = visibleCategories.Sum(c => c.Products.Count);
+    var isFiltered = Model.CategoryId is not null || !string.IsNullOrWhiteSpace(Model.Search);
 }
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <h1 class="h4 page-title mb-1">@Model.Restaurant.Name</h1>
-        <span class="chip">@Model.Table.Name · QR menü</span>
+
+<section class="menu-hero">
+    <h1>@Model.Restaurant.Name</h1>
+    <p class="hero-note">@Model.Table.Name için dijital menü. Seçiminizi yapın, sipariş doğrudan mutfağa iletilsin.</p>
+    <div class="hero-meta">
+        <span class="chip"><partial name="_Icon" model='"table"' /> @Model.Table.Name</span>
+        @if (!string.IsNullOrWhiteSpace(Model.Restaurant.WorkingHours))
+        {
+            <span class="chip"><partial name="_Icon" model='"clock"' /> @Model.Restaurant.WorkingHours</span>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.Restaurant.Phone))
+        {
+            <span class="chip"><partial name="_Icon" model='"phone"' /> @Model.Restaurant.Phone</span>
+        }
     </div>
+</section>
+
+<div class="menu-toolbar">
+    <form method="get" class="search-field">
+        <partial name="_Icon" model='"search"' />
+        <input type="hidden" name="categoryId" value="@Model.CategoryId" />
+        <input name="q" value="@Model.Search" class="form-control" placeholder="Menüde ara…" aria-label="Menüde ara" />
+    </form>
+    <nav class="cat-nav" aria-label="Kategoriler">
+        <a class="cat-chip @(Model.CategoryId is null ? "on" : "")"
+           href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = Model.Table.QrToken, q = Model.Search })">Tümü</a>
+        @foreach (var category in Model.Categories)
+        {
+            <a class="cat-chip @(Model.CategoryId == category.Id ? "on" : "")"
+               href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = Model.Table.QrToken, categoryId = category.Id, q = Model.Search })">@category.Name</a>
+        }
+    </nav>
 </div>
-<form method="get" class="row g-2 mb-3">
-    <div class="col-7">
-        <input name="q" value="@Model.Search" class="form-control" placeholder="Ürün ara…" />
-    </div>
-    <div class="col-5 col-md-3">
-        <select name="categoryId" class="form-select" asp-items="@(new SelectList(Model.Categories, "Id", "Name", Model.CategoryId))" onchange="this.form.submit()">
-            <option value="">Tümü</option>
-        </select>
-    </div>
-</form>
-<div class="cats mb-3">
-    <a class="cat @(Model.CategoryId is null ? "on" : "")" href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = Model.Table.QrToken, q = Model.Search })">Tümü</a>
-    @foreach (var category in Model.Categories)
-    {
-        <a class="cat @(Model.CategoryId == category.Id ? "on" : "")" href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = Model.Table.QrToken, categoryId = category.Id, q = Model.Search })">@category.Name</a>
-    }
-</div>
-<div class="d-flex gap-2 mb-3">
+
+<div class="service-row">
     <form asp-controller="Service" asp-action="RequestHelp" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" name="restaurantToken" value="@Model.Restaurant.PublicToken" />
         <input type="hidden" name="tableToken" value="@Model.Table.QrToken" />
         <input type="hidden" name="type" value="@ServiceRequestType.CallWaiter" />
-        <button class="btn btn-outline-secondary btn-sm">Garson çağır</button>
+        <button type="submit" class="service-btn">
+            <span class="service-ico"><partial name="_Icon" model='"bell"' /></span>
+            Garson çağır
+        </button>
     </form>
     <form asp-controller="Service" asp-action="RequestHelp" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" name="restaurantToken" value="@Model.Restaurant.PublicToken" />
         <input type="hidden" name="tableToken" value="@Model.Table.QrToken" />
         <input type="hidden" name="type" value="@ServiceRequestType.RequestBill" />
-        <button class="btn btn-outline-secondary btn-sm">Hesap iste</button>
+        <button type="submit" class="service-btn">
+            <span class="service-ico"><partial name="_Icon" model='"bill"' /></span>
+            Hesap iste
+        </button>
     </form>
 </div>
-@foreach (var category in Model.Categories)
+
+@if (productCount == 0)
 {
-    if (category.Products.Count == 0)
-    {
-        continue;
-    }
-    <h2 class="h5 mt-4">@category.Name</h2>
-    foreach (var product in category.Products)
-    {
-        var thumb = "t" + (i++ % 4);
-        <div class="card mb-2">
-            <div class="card-body product-card">
-                <div class="thumb @thumb"></div>
-                <div>
-                    <strong>@product.Name</strong>
-                    <div class="small text-muted">@product.Description</div>
-                    <div class="price mb-2">@product.Price.ToString("C")</div>
-                    <form asp-controller="Cart" asp-action="Add" method="post" class="row g-2">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="restaurantToken" value="@Model.Restaurant.PublicToken" />
-                        <input type="hidden" name="tableToken" value="@Model.Table.QrToken" />
-                        <input type="hidden" name="productId" value="@product.Id" />
-                        <div class="col-4 col-md-2">
-                            <input type="number" name="quantity" value="1" min="1" max="20" class="form-control form-control-sm" />
-                        </div>
-                        <div class="col-8 col-md-6">
-                            <input name="note" class="form-control form-control-sm" placeholder="Not" />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <button class="btn btn-dark btn-sm w-100">Sepete ekle</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <div class="panel">
+        <div class="empty">
+            <div class="empty-icon"><partial name="_Icon" model='"search"' /></div>
+            <div class="empty-title">Ürün bulunamadı</div>
+            <p class="empty-text">
+                @(isFiltered
+                    ? "Aramanıza veya seçtiğiniz kategoriye uygun ürün yok. Filtreyi temizleyip tekrar deneyin."
+                    : "Menü şu anda hazırlanıyor. Kısa süre içinde ürünler burada listelenecek.")
+            </p>
+            @if (isFiltered)
+            {
+                <a class="btn btn-soft btn-sm" href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = Model.Table.QrToken })">Filtreyi temizle</a>
+            }
         </div>
+    </div>
+}
+else
+{
+    foreach (var category in visibleCategories)
+    {
+        <section class="menu-section" id="kategori-@category.Id">
+            <div class="menu-section-head">
+                <h2>@category.Name</h2>
+                <span class="count">@category.Products.Count ürün</span>
+            </div>
+            <div class="product-list">
+                @foreach (var product in category.Products)
+                {
+                    <article class="product-card">
+                        <div class="product-thumb">
+                            @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl" alt="@product.Name" loading="lazy" />
+                            }
+                            else
+                            {
+                                <partial name="_Icon" model='"image"' />
+                            }
+                        </div>
+                        <div class="product-body">
+                            <div class="product-name">@product.Name</div>
+                            @if (!string.IsNullOrWhiteSpace(product.Description))
+                            {
+                                <p class="product-desc">@product.Description</p>
+                            }
+                            <div class="product-price">@product.Price.ToString("C")</div>
+
+                            <form asp-controller="Cart" asp-action="Add" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="restaurantToken" value="@Model.Restaurant.PublicToken" />
+                                <input type="hidden" name="tableToken" value="@Model.Table.QrToken" />
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <div class="product-form">
+                                    <span class="qty">
+                                        <button type="button" class="qty-btn" data-step="down" aria-label="Azalt">&minus;</button>
+                                        <input type="number" name="quantity" value="1" min="1" max="20" inputmode="numeric" aria-label="Adet" />
+                                        <button type="button" class="qty-btn" data-step="up" aria-label="Artır">&plus;</button>
+                                    </span>
+                                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                                        <partial name="_Icon" model='"plus"' /> Sepete ekle
+                                    </button>
+                                </div>
+                                <div class="product-note">
+                                    <button type="button" class="note-toggle" data-note-toggle="not-@product.Id">+ Not ekle</button>
+                                    <div id="not-@product.Id" class="mt-2" hidden>
+                                        <input name="note" class="form-control form-control-sm" placeholder="Örn. az acılı, soğansız" maxlength="200" />
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
     }
 }
-<a class="dock mt-4" asp-controller="Cart" asp-action="Index">
-    <span>Sepete git</span>
-    <span>@Model.CartCount ürün</span>
-</a>
+
+@if (Model.CartCount > 0)
+{
+    <a class="cart-bar" asp-controller="Cart" asp-action="Index">
+        <span>
+            <span class="cart-bar-label d-block">Sepetiniz</span>
+            <span class="cart-bar-value">@Model.CartCount ürün</span>
+        </span>
+        <span class="cart-go">Sepete git <partial name="_Icon" model='"arrow-right"' /></span>
+    </a>
+}

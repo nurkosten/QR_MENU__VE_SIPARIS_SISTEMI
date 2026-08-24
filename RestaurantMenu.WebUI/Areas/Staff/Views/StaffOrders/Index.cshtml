@@ -1,63 +1,177 @@
 @using RestaurantMenu.Business.Orders
 @model IReadOnlyList<Order>
 @{
-    ViewData["Title"] = "Personel siparişleri";
+    ViewData["Title"] = "Personel ekranı";
     var requests = ViewBag.Requests as IReadOnlyList<ServiceRequest> ?? [];
+    var todayOrderCount = (int)(ViewBag.TodayOrderCount ?? 0);
+    var todaySales = (decimal)(ViewBag.TodaySales ?? 0m);
+    var readyCount = Model.Count(o => o.Status == OrderStatus.Ready);
 }
-<h1 class="h4 page-title">Personel ekranı</h1>
-<h2 class="h5 mt-4">Çağrılar</h2>
-@if (requests.Count == 0)
-{
-    <p class="text-muted">Açık çağrı yok.</p>
-}
-else
-{
-    foreach (var request in requests)
-    {
-        <div class="ticket hot d-flex justify-content-between flex-wrap gap-2">
-            <div>@request.Table.Name — @DisplayTexts.ServiceType(request.Type) — @DisplayTexts.ServiceStatus(request.Status)</div>
-            <div>
-                @if (request.Status == ServiceRequestStatus.Pending)
-                {
-                    <form asp-action="HandleRequest" method="post" class="d-inline">
-                        <input type="hidden" name="id" value="@request.Id" />
-                        <input type="hidden" name="status" value="@ServiceRequestStatus.Acknowledged" />
-                        <button class="btn btn-sm btn-outline-dark">Alındı</button>
-                    </form>
-                }
-                <form asp-action="HandleRequest" method="post" class="d-inline">
-                    <input type="hidden" name="id" value="@request.Id" />
-                    <input type="hidden" name="status" value="@ServiceRequestStatus.Completed" />
-                    <button class="btn btn-sm btn-dark">Tamamla</button>
-                </form>
-            </div>
-        </div>
-    }
-}
-<h2 class="h5 mt-4">Siparişler</h2>
-@foreach (var order in Model)
-{
-    var ticketClass = order.Status switch
-    {
-        OrderStatus.New or OrderStatus.Confirmed => "hot",
-        OrderStatus.Preparing => "prep",
-        OrderStatus.Ready => "ok",
-        _ => ""
-    };
-    <div class="ticket @ticketClass">
-        <strong>@order.OrderNumber</strong> — @order.Table.Name
-        <span class="badge bg-@DisplayTexts.StatusBadge(order.Status)">@DisplayTexts.OrderStatus(order.Status)</span>
-        <div class="price">@order.TotalAmount.ToString("C")</div>
-        @foreach (var next in OrderStatusMachine.GetAllowedTargets(order.Status))
-        {
-            if (OrderStatusPolicy.CanChange(new[] { AppRoles.Personel }, order.Status, next) || User.IsInRole(AppRoles.Admin))
-            {
-                <form asp-action="ChangeStatus" method="post" class="d-inline">
-                    <input type="hidden" name="id" value="@order.Id" />
-                    <input type="hidden" name="nextStatus" value="@next" />
-                    <button class="btn btn-sm btn-outline-dark mt-2">@DisplayTexts.OrderStatus(next)</button>
-                </form>
-            }
-        }
+
+<div class="page-head">
+    <div>
+        <h1>Personel ekranı</h1>
+        <p class="page-sub"><span class="live-dot"></span> Servis ve çağrı takibi</p>
     </div>
-}
+    <div class="page-actions">
+        <div class="refresh-meter" data-refresh="20">
+            <span class="bar"><span></span></span>
+            <span>20 sn'de bir yenilenir</span>
+        </div>
+    </div>
+</div>
+
+<div class="stat-grid mb-4">
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Bugünkü sipariş</span>
+            <span class="stat-icon info"><partial name="_Icon" model='"receipt"' /></span>
+        </div>
+        <div class="stat-value">@todayOrderCount</div>
+    </div>
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Bugünkü ciro</span>
+            <span class="stat-icon ok"><partial name="_Icon" model='"cash"' /></span>
+        </div>
+        <div class="stat-value">@todaySales.ToString("C")</div>
+    </div>
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Servise hazır</span>
+            <span class="stat-icon warn"><partial name="_Icon" model='"check-circle"' /></span>
+        </div>
+        <div class="stat-value">@readyCount</div>
+    </div>
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Açık çağrı</span>
+            <span class="stat-icon prep"><partial name="_Icon" model='"bell"' /></span>
+        </div>
+        <div class="stat-value">@requests.Count</div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-5">
+        <div class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title">Masa çağrıları</h2>
+                <span class="chip">@requests.Count açık</span>
+            </div>
+            @if (requests.Count == 0)
+            {
+                <div class="empty">
+                    <div class="empty-icon"><partial name="_Icon" model='"bell"' /></div>
+                    <div class="empty-title">Bekleyen çağrı yok</div>
+                    <p class="empty-text">Garson çağır ve hesap iste talepleri burada anlık olarak görünür.</p>
+                </div>
+            }
+            else
+            {
+                <div class="panel-body">
+                    @foreach (var request in requests)
+                    {
+                        <div class="op-card @(request.Status == ServiceRequestStatus.Pending ? "s-new" : "s-confirmed")">
+                            <div class="op-head">
+                                <div>
+                                    <div class="op-no">@request.Table.Name</div>
+                                    <div class="list-row-sub">
+                                        @DisplayTexts.ServiceType(request.Type) ·
+                                        <span data-elapsed="@DateTime.SpecifyKind(request.CreatedAt, DateTimeKind.Utc).ToString("o")">az önce</span>
+                                    </div>
+                                </div>
+                                <span class="badge @(request.Status == ServiceRequestStatus.Pending ? "bg-warning" : "bg-info")">
+                                    @DisplayTexts.ServiceStatus(request.Status)
+                                </span>
+                            </div>
+                            <div class="op-actions mt-2">
+                                @if (request.Status == ServiceRequestStatus.Pending)
+                                {
+                                    <form asp-action="HandleRequest" method="post">
+                                        <input type="hidden" name="id" value="@request.Id" />
+                                        <input type="hidden" name="status" value="@ServiceRequestStatus.Acknowledged" />
+                                        <button type="submit" class="btn btn-outline-dark btn-sm">Alındı</button>
+                                    </form>
+                                }
+                                <form asp-action="HandleRequest" method="post">
+                                    <input type="hidden" name="id" value="@request.Id" />
+                                    <input type="hidden" name="status" value="@ServiceRequestStatus.Completed" />
+                                    <button type="submit" class="btn btn-primary btn-sm">Tamamla</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-xl-7">
+        <div class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title">Açık siparişler</h2>
+                <span class="chip">@Model.Count sipariş</span>
+            </div>
+            @if (Model.Count == 0)
+            {
+                <div class="empty">
+                    <div class="empty-icon"><partial name="_Icon" model='"inbox"' /></div>
+                    <div class="empty-title">Açık sipariş yok</div>
+                    <p class="empty-text">Masalardan yeni sipariş geldiğinde burada listelenir.</p>
+                </div>
+            }
+            else
+            {
+                <div class="panel-body">
+                    @foreach (var order in Model)
+                    {
+                        var stateClass = order.Status switch
+                        {
+                            OrderStatus.New => "s-new",
+                            OrderStatus.Confirmed => "s-confirmed",
+                            OrderStatus.Preparing => "s-preparing",
+                            OrderStatus.Ready => "s-ready",
+                            OrderStatus.Served => "s-served",
+                            _ => string.Empty
+                        };
+                        var targets = OrderStatusMachine.GetAllowedTargets(order.Status)
+                            .Where(next => User.IsInRole(AppRoles.Admin) || OrderStatusPolicy.CanChange(new[] { AppRoles.Personel }, order.Status, next))
+                            .ToList();
+                        <div class="op-card @stateClass">
+                            <div class="op-head">
+                                <div>
+                                    <div class="op-no">@order.OrderNumber</div>
+                                    <div class="list-row-sub">
+                                        @order.Table.Name ·
+                                        <span data-elapsed="@DateTime.SpecifyKind(order.CreatedAt, DateTimeKind.Utc).ToString("o")">az önce</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-@DisplayTexts.StatusBadge(order.Status)">@DisplayTexts.OrderStatus(order.Status)</span>
+                                    <span class="money">@order.TotalAmount.ToString("C")</span>
+                                </div>
+                            </div>
+                            <div class="op-items">
+                                @string.Join(" · ", order.Items.Select(i => $"{i.Quantity}× {i.ProductNameSnapshot}"))
+                            </div>
+                            @if (targets.Count > 0)
+                            {
+                                <div class="op-actions">
+                                    @foreach (var next in targets)
+                                    {
+                                        <form asp-action="ChangeStatus" method="post">
+                                            <input type="hidden" name="id" value="@order.Id" />
+                                            <input type="hidden" name="nextStatus" value="@next" />
+                                            <button type="submit" class="btn btn-outline-dark btn-sm">@DisplayTexts.OrderStatus(next)</button>
+                                        </form>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

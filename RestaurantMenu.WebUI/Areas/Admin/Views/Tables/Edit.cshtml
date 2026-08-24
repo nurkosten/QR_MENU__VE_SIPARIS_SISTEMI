@@ -1,12 +1,61 @@
-@model TableFormViewModel
+﻿@model TableFormViewModel
 @{
     ViewData["Title"] = "Masa düzenle";
 }
-<h1 class="h4">Masa düzenle</h1>
-<form method="post">
-    <input type="hidden" asp-for="Id" />
-    <div class="mb-3"><label asp-for="TableNumber"></label><input asp-for="TableNumber" class="form-control" /></div>
-    <div class="mb-3"><label asp-for="Name"></label><input asp-for="Name" class="form-control" /></div>
-    <div class="form-check mb-3"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive"></label></div>
-    <button class="btn btn-dark">Kaydet</button>
-</form>
+
+<div class="page-head">
+    <div>
+        <h1>Masa düzenle</h1>
+        <p class="page-sub">@Model.Name</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-dark btn-sm" asp-action="Qr" asp-route-id="@Model.Id">
+            <partial name="_Icon" model='"qr"' /> QR kodunu gör
+        </a>
+        <a class="btn btn-ghost btn-sm" asp-action="Index">
+            <partial name="_Icon" model='"arrow-left"' /> Masalara dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="panel">
+            <div class="panel-body">
+                <form method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <div asp-validation-summary="ModelOnly" class="validation-summary-errors mb-3"></div>
+
+                    <div class="form-grid">
+                        <div>
+                            <label asp-for="TableNumber" class="form-label"></label>
+                            <input asp-for="TableNumber" class="form-control" />
+                            <span asp-validation-for="TableNumber" class="field-validation-error"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Name" class="form-label"></label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="field-validation-error"></span>
+                        </div>
+                        <div class="col-full">
+                            <div class="form-check form-switch">
+                                <input asp-for="IsActive" class="form-check-input" />
+                                <label asp-for="IsActive" class="form-check-label"></label>
+                            </div>
+                            <p class="field-hint">Pasif masaların QR kodu müşteri menüsünü açmaz.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-primary" type="submit">Kaydet</button>
+                        <a class="btn btn-ghost" asp-action="Index">Vazgeç</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

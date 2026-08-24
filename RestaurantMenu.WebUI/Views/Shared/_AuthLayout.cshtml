@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10161f" />
+    <title>@ViewData["Title"] · QR Menü</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="auth-shell">
+        <aside class="auth-aside">
+            <div class="brand">
+                <span class="brand-mark"><partial name="_Icon" model='"dish"' /></span>
+                <span>
+                    <span class="brand-name d-block">QR Menü</span>
+                    <span class="brand-sub">Sipariş yönetim sistemi</span>
+                </span>
+            </div>
+            <div>
+                <h2>Masadan mutfağa tek akış.</h2>
+                <p>QR ile alınan siparişler anında mutfak ekranına düşer, personel servis ve çağrıları aynı panelden yönetir.</p>
+                <ul class="auth-points">
+                    <li><partial name="_Icon" model='"check-circle"' /> Masaya özel QR menü ve dijital sipariş</li>
+                    <li><partial name="_Icon" model='"check-circle"' /> Canlı mutfak kuyruğu ve durum takibi</li>
+                    <li><partial name="_Icon" model='"check-circle"' /> Garson çağır ve hesap iste talepleri</li>
+                    <li><partial name="_Icon" model='"check-circle"' /> Günlük, haftalık ve aylık satış raporları</li>
+                </ul>
+            </div>
+            <span class="brand-sub" style="position:relative;">&copy; @DateTime.Now.Year · Tüm hakları saklıdır</span>
+        </aside>
+
+        <main class="auth-main">
+            <div class="auth-card-wrap">
+                <div class="auth-mobile-brand">
+                    <span class="brand-mark"><partial name="_Icon" model='"dish"' /></span>
+                    <span>
+                        <span class="brand-name d-block">QR Menü</span>
+                        <span class="brand-sub">Sipariş yönetim sistemi</span>
+                    </span>
+                </div>
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <partial name="_Toasts" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

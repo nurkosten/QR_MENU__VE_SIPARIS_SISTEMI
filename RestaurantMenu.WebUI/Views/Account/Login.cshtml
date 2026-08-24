@@ -1,29 +1,48 @@
-@model LoginViewModel
+﻿@model LoginViewModel
 @{
-    ViewData["Title"] = "Giriş";
+    ViewData["Title"] = "Personel girişi";
+    Layout = "_AuthLayout";
 }
-<div class="login-wrap">
-    <div class="card">
-        <div class="card-body p-4">
-            <span class="chip mb-3">Personel</span>
-            <h1 class="h4 page-title mb-3">Personel girişi</h1>
-            <form asp-action="Login" method="post">
-                <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <div class="mb-3">
-                    <label asp-for="Email" class="form-label"></label>
-                    <input asp-for="Email" class="form-control" />
-                </div>
-                <div class="mb-3">
-                    <label asp-for="Password" class="form-label"></label>
-                    <input asp-for="Password" class="form-control" />
-                </div>
-                <div class="form-check mb-3">
-                    <input asp-for="RememberMe" class="form-check-input" />
-                    <label asp-for="RememberMe" class="form-check-label"></label>
-                </div>
-                <button class="btn btn-dark w-100" type="submit">Giriş yap</button>
-            </form>
+<div class="auth-card">
+    <h1>Personel girişi</h1>
+    <p class="lead-sub">Yönetim, personel ve mutfak ekranlarına erişmek için hesabınızla giriş yapın.</p>
+
+    <form asp-action="Login" method="post">
+        <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+        <div asp-validation-summary="ModelOnly" class="validation-summary-errors mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label"></label>
+            <input asp-for="Email" class="form-control" autocomplete="username" placeholder="ornek@restaurant.local" />
+            <span asp-validation-for="Email" class="field-validation-error"></span>
         </div>
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label"></label>
+            <input asp-for="Password" class="form-control" autocomplete="current-password" placeholder="••••••••" />
+            <span asp-validation-for="Password" class="field-validation-error"></span>
+        </div>
+        <div class="form-check mb-3">
+            <input asp-for="RememberMe" class="form-check-input" />
+            <label asp-for="RememberMe" class="form-check-label"></label>
+        </div>
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Giriş yap</button>
+    </form>
+
+    <div class="demo-accounts">
+        <p class="section-title">Demo hesapları</p>
+        <div class="demo-row"><span>Yönetici</span><code>admin@restaurant.local / Admin123!</code></div>
+        <div class="demo-row"><span>Personel</span><code>personel@restaurant.local / Personel123!</code></div>
+        <div class="demo-row"><span>Mutfak</span><code>mutfak@restaurant.local / Mutfak123!</code></div>
     </div>
+
+    <p class="text-center mt-4 mb-0">
+        <a class="btn btn-ghost btn-sm" asp-controller="Home" asp-action="Index">
+            <partial name="_Icon" model='"arrow-left"' /> Müşteri menüsüne dön
+        </a>
+    </p>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

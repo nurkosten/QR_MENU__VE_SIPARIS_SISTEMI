@@ -72,6 +72,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<RestaurantMenu.WebUI.Infrastructure.ExceptionLoggingMiddleware>();
 app.Use(async (context, next) =>
 {
     context.Response.OnStarting(() =>

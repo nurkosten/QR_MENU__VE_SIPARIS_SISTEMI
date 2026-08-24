@@ -1,8 +1,11 @@
 @{
-    ViewData["Title"] = "Bulunamadı";
+    ViewData["Title"] = "Sayfa bulunamadı";
 }
-<div class="card"><div class="card-body">
-    <h1 class="page-title h4">Sayfa bulunamadı</h1>
-    <p class="text-muted">Aradığınız kayıt veya QR kodu geçersiz.</p>
-    <a class="btn btn-dark" asp-controller="Home" asp-action="Index">Ana sayfa</a>
-</div></div>
+<div class="state-page">
+    <div>
+        <div class="state-code">404</div>
+        <h1 class="state-title">Sayfa bulunamadı</h1>
+        <p class="state-text">Aradığınız kayıt kaldırılmış ya da adres hatalı olabilir.</p>
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Ana sayfaya dön</a>
+    </div>
+</div>

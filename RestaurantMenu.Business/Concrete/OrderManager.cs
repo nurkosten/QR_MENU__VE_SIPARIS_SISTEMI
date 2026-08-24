@@ -134,7 +134,7 @@ public class OrderManager : IOrderService
             tableResult.Data!.Table.Id,
             lines,
             customerNote,
-            OrderStatus.Confirmed,
+            OrderStatus.New,
             cancellationToken);
     }
 

@@ -1,23 +1,92 @@
-@model IEnumerable<Product>
+﻿@model IEnumerable<Product>
 @{
     ViewData["Title"] = "Ürünler";
+    var products = Model.ToList();
 }
-<div class="d-flex justify-content-between mb-3">
-    <h1 class="h4">Ürünler</h1>
-    <a class="btn btn-dark btn-sm" asp-action="Create">Yeni</a>
+
+<div class="page-head">
+    <div>
+        <h1>Ürünler</h1>
+        <p class="page-sub">@products.Count ürün kayıtlı · satışta olanlar müşteri menüsünde görünür</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-primary btn-sm" asp-action="Create">
+            <partial name="_Icon" model='"plus"' /> Yeni ürün
+        </a>
+    </div>
 </div>
-<table class="table bg-white">
-    <thead><tr><th>Ad</th><th>Kategori</th><th>Fiyat</th><th>Satış</th><th></th></tr></thead>
-    <tbody>
-    @foreach (var item in Model)
+
+<div class="panel">
+    @if (products.Count == 0)
     {
-        <tr>
-            <td>@item.Name</td>
-            <td>@item.Category.Name</td>
-            <td>@item.Price.ToString("C")</td>
-            <td>@(item.IsAvailable && item.IsActive ? "Açık" : "Kapalı")</td>
-            <td><a asp-action="Edit" asp-route-id="@item.Id">Düzenle</a></td>
-        </tr>
+        <div class="empty">
+            <div class="empty-icon"><partial name="_Icon" model='"dish"' /></div>
+            <div class="empty-title">Henüz ürün yok</div>
+            <p class="empty-text">Menüyü doldurmak için ilk ürününüzü ekleyin.</p>
+            <a class="btn btn-primary btn-sm" asp-action="Create">Ürün ekle</a>
+        </div>
     }
-    </tbody>
-</table>
+    else
+    {
+        <div class="table-wrap">
+            <table class="table table-stack">
+                <thead>
+                    <tr>
+                        <th>Ürün</th>
+                        <th>Kategori</th>
+                        <th class="num">Fiyat</th>
+                        <th>Satış durumu</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in products)
+                    {
+                        <tr>
+                            <td class="cell-main">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="product-thumb" style="width:40px;height:40px;">
+                                        @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                                        {
+                                            <img src="@item.ImageUrl" alt="@item.Name" loading="lazy" />
+                                        }
+                                        else
+                                        {
+                                            <partial name="_Icon" model='"image"' />
+                                        }
+                                    </span>
+                                    <span class="min-w-0">
+                                        <span class="cell-title d-block">@item.Name</span>
+                                        @if (!string.IsNullOrWhiteSpace(item.Description))
+                                        {
+                                            <span class="cell-sub d-block text-truncate" style="max-width:280px;">@item.Description</span>
+                                        }
+                                    </span>
+                                </div>
+                            </td>
+                            <td data-label="Kategori">@item.Category.Name</td>
+                            <td class="num money" data-label="Fiyat">@item.Price.ToString("C")</td>
+                            <td data-label="Durum">
+                                @if (item.IsAvailable && item.IsActive)
+                                {
+                                    <span class="badge bg-success">Satışta</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Kapalı</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    <a class="btn btn-outline-dark btn-sm" asp-action="Edit" asp-route-id="@item.Id">
+                                        <partial name="_Icon" model='"pencil"' /> Düzenle
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

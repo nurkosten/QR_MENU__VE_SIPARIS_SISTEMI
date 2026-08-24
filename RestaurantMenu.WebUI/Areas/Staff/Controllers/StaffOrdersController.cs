@@ -15,15 +15,18 @@ public class StaffOrdersController : Controller
 {
     private readonly IOrderService _orders;
     private readonly IServiceRequestService _requests;
+    private readonly IReportService _reports;
     private readonly UserManager<ApplicationUser> _users;
 
     public StaffOrdersController(
         IOrderService orders,
         IServiceRequestService requests,
+        IReportService reports,
         UserManager<ApplicationUser> users)
     {
         _orders = orders;
         _requests = requests;
+        _reports = reports;
         _users = users;
     }
 
@@ -31,6 +34,9 @@ public class StaffOrdersController : Controller
     {
         var openRequests = await _requests.GetOpenAsync();
         ViewBag.Requests = openRequests;
+        var stats = await _reports.GetDashboardAsync();
+        ViewBag.TodayOrderCount = stats.TodayOrderCount;
+        ViewBag.TodaySales = stats.TodaySales;
         return View(await _orders.GetStaffOrdersAsync());
     }
 

@@ -1,8 +1,16 @@
-@{
-    ViewData["Title"] = "Hata";
+﻿@{
+    ViewData["Title"] = "Beklenmeyen hata";
 }
-<div class="card"><div class="card-body">
-    <h1 class="page-title h4">Bir hata oluştu</h1>
-    <p class="text-muted">İşlem tamamlanamadı. Lütfen tekrar deneyin.</p>
-    <a class="btn btn-dark" asp-controller="Home" asp-action="Index">Ana sayfa</a>
-</div></div>
+<div class="state-page">
+    <div>
+        <div class="state-code">500</div>
+        <h1 class="state-title">Bir şeyler ters gitti</h1>
+        <p class="state-text">İşlem tamamlanamadı. Kısa süre sonra tekrar deneyin; sorun sürerse yöneticinize bildirin.</p>
+        <div class="d-flex gap-2 justify-content-center">
+            <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Ana sayfaya dön</a>
+            <button type="button" class="btn btn-outline-dark" onclick="location.reload()">
+                <partial name="_Icon" model='"refresh"' /> Tekrar dene
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,7 +1,11 @@
 <Solution>
-  <Project Path="RestaurantMenu.Business/RestaurantMenu.Business.csproj" />
-  <Project Path="RestaurantMenu.DataAccess/RestaurantMenu.DataAccess.csproj" />
+  <Folder Name="/Dokumanlar/">
+    <File Path="QR_Restoran_Menu_Siparis_Sistemi_Detayli_Proje_Dosyasi.docx" />
+    <File Path="README.md" />
+  </Folder>
   <Project Path="RestaurantMenu.Entities/RestaurantMenu.Entities.csproj" />
-  <Project Path="RestaurantMenu.Tests/RestaurantMenu.Tests.csproj" />
+  <Project Path="RestaurantMenu.DataAccess/RestaurantMenu.DataAccess.csproj" />
+  <Project Path="RestaurantMenu.Business/RestaurantMenu.Business.csproj" />
   <Project Path="RestaurantMenu.WebUI/RestaurantMenu.WebUI.csproj" />
+  <Project Path="RestaurantMenu.Tests/RestaurantMenu.Tests.csproj" />
 </Solution>

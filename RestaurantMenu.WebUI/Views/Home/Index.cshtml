@@ -1,34 +1,60 @@
 ﻿@model Restaurant?
 @{
-    ViewData["Title"] = "QR Kodlu Restoran Menü";
+    ViewData["Title"] = Model?.Name ?? "QR Restoran Menü";
 }
-<div class="row justify-content-center">
+
+<section class="menu-hero mb-4">
+    <h1>@(Model?.Name ?? "QR Restoran Menü")</h1>
+    <p class="hero-note">
+        @(string.IsNullOrWhiteSpace(Model?.Description)
+            ? "Masaya özel QR kod ile açılan dijital menü ve sipariş yönetim sistemi."
+            : Model!.Description)
+    </p>
+    <div class="hero-meta">
+        @if (!string.IsNullOrWhiteSpace(Model?.Address))
+        {
+            <span class="chip"><partial name="_Icon" model='"pin"' /> @Model!.Address</span>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model?.Phone))
+        {
+            <span class="chip"><partial name="_Icon" model='"phone"' /> @Model!.Phone</span>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model?.WorkingHours))
+        {
+            <span class="chip"><partial name="_Icon" model='"clock"' /> @Model!.WorkingHours</span>
+        }
+    </div>
+</section>
+
+<div class="row g-3">
     <div class="col-lg-7">
-        <div class="card hero-card">
-            <div class="card-body">
-                <span class="chip mb-3">Canlı menü</span>
-                <h1 class="page-title h2">@((Model?.Name) ?? "QR Restoran Menü")</h1>
-                <p class="text-muted">Aktif masa bulunamadı. QR kodu olan bir masa eklenince müşteri menüsü burada açılır.</p>
-                @if (!string.IsNullOrWhiteSpace(Model?.Address))
-                {
-                    <p class="mb-1">@Model!.Address</p>
-                }
-                @if (!string.IsNullOrWhiteSpace(Model?.Phone))
-                {
-                    <p class="mb-1">@Model!.Phone</p>
-                }
-                @if (!string.IsNullOrWhiteSpace(Model?.WorkingHours))
-                {
-                    <p>Çalışma saatleri: @Model!.WorkingHours</p>
-                }
-                <hr class="border" />
-                <p class="small text-muted mb-2">Demo girişleri</p>
-                <ul class="small text-muted">
-                    <li>Admin: admin@restaurant.local / Admin123!</li>
-                    <li>Personel: personel@restaurant.local / Personel123!</li>
-                    <li>Mutfak: mutfak@restaurant.local / Mutfak123!</li>
-                </ul>
-                <a class="btn btn-dark" asp-controller="Account" asp-action="Login">Yönetim paneli</a>
+        <div class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title">Menü nasıl açılır?</h2>
+            </div>
+            <div class="panel-body">
+                <div class="empty">
+                    <div class="empty-icon"><partial name="_Icon" model='"qr"' /></div>
+                    <div class="empty-title">Aktif masa bulunamadı</div>
+                    <p class="empty-text">
+                        Müşteri menüsü masaya özel QR kod ile açılır. Yönetim panelinden aktif bir masa
+                        oluşturduğunuzda menü bağlantısı burada devreye girer.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title">Yönetim</h2>
+            </div>
+            <div class="panel-body">
+                <p class="text-muted">Masa, kategori, ürün ve siparişleri yönetmek için panele giriş yapın.</p>
+                <a class="btn btn-primary btn-block" asp-controller="Account" asp-action="Login">
+                    <partial name="_Icon" model='"shield"' /> Yönetim paneline git
+                </a>
             </div>
         </div>
     </div>

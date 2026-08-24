@@ -1,32 +1,52 @@
 @using RestaurantMenu.Business.Orders
 @model Order
 @{
-    var ticketClass = Model.Status switch
-    {
-        OrderStatus.New or OrderStatus.Confirmed => "hot",
-        OrderStatus.Preparing => "prep",
-        OrderStatus.Ready => "ok",
-        _ => ""
-    };
+    var createdUtc = DateTime.SpecifyKind(Model.CreatedAt, DateTimeKind.Utc).ToString("o");
+    var targets = OrderStatusMachine.GetAllowedTargets(Model.Status)
+        .Where(next => User.IsInRole(AppRoles.Admin) || OrderStatusPolicy.CanChange(new[] { AppRoles.Mutfak }, Model.Status, next))
+        .ToList();
 }
-<div class="ticket @ticketClass">
-    <strong>@Model.OrderNumber</strong> — @Model.Table.Name
-    <span class="badge bg-@DisplayTexts.StatusBadge(Model.Status)">@DisplayTexts.OrderStatus(Model.Status)</span>
-    <ul class="mb-2">
+<article class="kds-ticket">
+    <div class="kds-ticket-head">
+        <div>
+            <div class="kds-order-no">@Model.OrderNumber</div>
+            <div class="kds-table">@Model.Table.Name</div>
+        </div>
+        <div class="kds-time" data-elapsed="@createdUtc">az önce</div>
+    </div>
+
+    <ul class="kds-items">
         @foreach (var item in Model.Items)
         {
-            <li>@item.ProductNameSnapshot x @item.Quantity @item.Note</li>
+            <li>
+                <span class="kds-qty">@item.Quantity</span>
+                <span>
+                    @item.ProductNameSnapshot
+                    @if (!string.IsNullOrWhiteSpace(item.Note))
+                    {
+                        <span class="kds-item-note">@item.Note</span>
+                    }
+                </span>
+            </li>
         }
     </ul>
-    @foreach (var next in OrderStatusMachine.GetAllowedTargets(Model.Status))
+
+    @if (!string.IsNullOrWhiteSpace(Model.CustomerNote))
     {
-        if (OrderStatusPolicy.CanChange(new[] { AppRoles.Mutfak }, Model.Status, next) || User.IsInRole(AppRoles.Admin))
-        {
-            <form asp-action="ChangeStatus" method="post" class="d-inline">
-                <input type="hidden" name="id" value="@Model.Id" />
-                <input type="hidden" name="nextStatus" value="@next" />
-                <button class="btn btn-sm btn-dark">@DisplayTexts.OrderStatus(next)</button>
-            </form>
-        }
+        <div class="kds-order-note">Sipariş notu: @Model.CustomerNote</div>
     }
-</div>
+
+    @if (targets.Count > 0)
+    {
+        <div class="kds-actions">
+            @foreach (var next in targets)
+            {
+                <form asp-action="ChangeStatus" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="nextStatus" value="@next" />
+                    <button type="submit" class="btn btn-sm @(next == OrderStatus.Cancelled ? "" : "btn-go")">@DisplayTexts.OrderStatus(next)</button>
+                </form>
+            }
+        </div>
+    }
+</article>

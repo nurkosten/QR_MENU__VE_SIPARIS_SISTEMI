@@ -1,22 +1,70 @@
-@model IEnumerable<Category>
+﻿@model IEnumerable<Category>
 @{
     ViewData["Title"] = "Kategoriler";
+    var categories = Model.ToList();
 }
-<div class="d-flex justify-content-between mb-3">
-    <h1 class="h4">Kategoriler</h1>
-    <a class="btn btn-dark btn-sm" asp-action="Create">Yeni</a>
+
+<div class="page-head">
+    <div>
+        <h1>Kategoriler</h1>
+        <p class="page-sub">Menüdeki bölümler ve görüntülenme sıraları</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-primary btn-sm" asp-action="Create">
+            <partial name="_Icon" model='"plus"' /> Yeni kategori
+        </a>
+    </div>
 </div>
-<table class="table bg-white">
-    <thead><tr><th>Ad</th><th>Sıra</th><th>Durum</th><th></th></tr></thead>
-    <tbody>
-    @foreach (var item in Model)
+
+<div class="panel">
+    @if (categories.Count == 0)
     {
-        <tr>
-            <td>@item.Name</td>
-            <td>@item.DisplayOrder</td>
-            <td>@(item.IsActive ? "Aktif" : "Pasif")</td>
-            <td><a asp-action="Edit" asp-route-id="@item.Id">Düzenle</a></td>
-        </tr>
+        <div class="empty">
+            <div class="empty-icon"><partial name="_Icon" model='"layers"' /></div>
+            <div class="empty-title">Henüz kategori yok</div>
+            <p class="empty-text">Ürünleri gruplamak için önce bir kategori oluşturun.</p>
+            <a class="btn btn-primary btn-sm" asp-action="Create">Kategori oluştur</a>
+        </div>
     }
-    </tbody>
-</table>
+    else
+    {
+        <div class="table-wrap">
+            <table class="table table-stack">
+                <thead>
+                    <tr>
+                        <th>Kategori</th>
+                        <th class="num">Sıra</th>
+                        <th>Durum</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in categories)
+                    {
+                        <tr>
+                            <td class="cell-main"><span class="cell-title">@item.Name</span></td>
+                            <td class="num" data-label="Sıra">@item.DisplayOrder</td>
+                            <td data-label="Durum">
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pasif</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    <a class="btn btn-outline-dark btn-sm" asp-action="Edit" asp-route-id="@item.Id">
+                                        <partial name="_Icon" model='"pencil"' /> Düzenle
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

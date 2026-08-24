@@ -1,61 +1,146 @@
+﻿@functions {
+    string NavState(string area, string controller)
+    {
+        var currentArea = ViewContext.RouteData.Values["area"]?.ToString() ?? string.Empty;
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+        return string.Equals(currentArea, area, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
+            ? "nav-link-item active"
+            : "nav-link-item";
+    }
+}
+@{
+    var displayName = User.Identity?.Name ?? "Kullanıcı";
+    var atIndex = displayName.IndexOf('@');
+    var shortName = atIndex > 0 ? displayName[..atIndex] : displayName;
+    var initials = shortName.Length > 0 ? shortName[..1].ToUpperInvariant() : "?";
+    var roleLabel = User.IsInRole(AppRoles.Admin) ? "Yönetici"
+        : User.IsInRole(AppRoles.Personel) ? "Personel"
+        : User.IsInRole(AppRoles.Mutfak) ? "Mutfak" : "Kullanıcı";
+}
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Yönetim</title>
+    <meta name="theme-color" content="#10161f" />
+    <title>@ViewData["Title"] · Yönetim</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body class="theme-app">
-    <div class="blobs" aria-hidden="true">
-        <div class="blob a"></div>
-        <div class="blob b"></div>
-        <div class="blob c"></div>
-    </div>
-    <div class="d-flex min-vh-100 shell">
-        <aside class="app-nav">
-            <h5 class="mb-4">QR Menü</h5>
-            @if (User.IsInRole(AppRoles.Admin))
-            {
-                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Özet</a>
-                <a asp-area="Admin" asp-controller="Restaurant" asp-action="Edit">İşletme</a>
-                <a asp-area="Admin" asp-controller="Categories" asp-action="Index">Kategoriler</a>
-                <a asp-area="Admin" asp-controller="Products" asp-action="Index">Ürünler</a>
-                <a asp-area="Admin" asp-controller="Tables" asp-action="Index">Masalar / QR</a>
-                <a asp-area="Admin" asp-controller="Orders" asp-action="Index">Siparişler</a>
-                <a asp-area="Admin" asp-controller="Reports" asp-action="Index">Raporlar</a>
-                <a asp-area="Admin" asp-controller="Users" asp-action="Index">Kullanıcılar</a>
-            }
-            @if (User.IsInRole(AppRoles.Personel) || User.IsInRole(AppRoles.Admin))
-            {
-                <a asp-area="Staff" asp-controller="StaffOrders" asp-action="Index">Personel ekranı</a>
-            }
-            @if (User.IsInRole(AppRoles.Mutfak) || User.IsInRole(AppRoles.Admin))
-            {
-                <a asp-area="Kitchen" asp-controller="KitchenOrders" asp-action="Index">Mutfak ekranı</a>
-            }
-            <form asp-controller="Account" asp-action="Logout" asp-area="" method="post" class="mt-4">
-                <button class="btn btn-outline-light btn-sm w-100">Çıkış</button>
-            </form>
+<body>
+    <div class="app-shell">
+        <div class="sidebar-backdrop"></div>
+        <aside class="app-sidebar">
+            <div class="brand">
+                <span class="brand-mark"><partial name="_Icon" model='"dish"' /></span>
+                <span>
+                    <span class="brand-name d-block">QR Menü</span>
+                    <span class="brand-sub">Yönetim paneli</span>
+                </span>
+            </div>
+
+            <nav class="nav-scroll">
+                @if (User.IsInRole(AppRoles.Admin))
+                {
+                    <div class="nav-group">
+                        <div class="nav-group-title">Genel</div>
+                        <a class="@NavState("Admin", "Dashboard")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                            <partial name="_Icon" model='"grid"' /> Özet
+                        </a>
+                        <a class="@NavState("Admin", "Reports")" asp-area="Admin" asp-controller="Reports" asp-action="Index">
+                            <partial name="_Icon" model='"chart"' /> Raporlar
+                        </a>
+                    </div>
+                    <div class="nav-group">
+                        <div class="nav-group-title">Menü yönetimi</div>
+                        <a class="@NavState("Admin", "Categories")" asp-area="Admin" asp-controller="Categories" asp-action="Index">
+                            <partial name="_Icon" model='"layers"' /> Kategoriler
+                        </a>
+                        <a class="@NavState("Admin", "Products")" asp-area="Admin" asp-controller="Products" asp-action="Index">
+                            <partial name="_Icon" model='"dish"' /> Ürünler
+                        </a>
+                        <a class="@NavState("Admin", "Tables")" asp-area="Admin" asp-controller="Tables" asp-action="Index">
+                            <partial name="_Icon" model='"qr"' /> Masalar ve QR
+                        </a>
+                    </div>
+                    <div class="nav-group">
+                        <div class="nav-group-title">İşletme</div>
+                        <a class="@NavState("Admin", "Orders")" asp-area="Admin" asp-controller="Orders" asp-action="Index">
+                            <partial name="_Icon" model='"receipt"' /> Siparişler
+                        </a>
+                        <a class="@NavState("Admin", "Restaurant")" asp-area="Admin" asp-controller="Restaurant" asp-action="Edit">
+                            <partial name="_Icon" model='"store"' /> İşletme bilgileri
+                        </a>
+                        <a class="@NavState("Admin", "Users")" asp-area="Admin" asp-controller="Users" asp-action="Index">
+                            <partial name="_Icon" model='"users"' /> Kullanıcılar
+                        </a>
+                    </div>
+                }
+
+                @if (User.IsInRole(AppRoles.Personel) || User.IsInRole(AppRoles.Mutfak) || User.IsInRole(AppRoles.Admin))
+                {
+                    <div class="nav-group">
+                        <div class="nav-group-title">Operasyon</div>
+                        @if (User.IsInRole(AppRoles.Personel) || User.IsInRole(AppRoles.Admin))
+                        {
+                            <a class="@NavState("Staff", "StaffOrders")" asp-area="Staff" asp-controller="StaffOrders" asp-action="Index">
+                                <partial name="_Icon" model='"clipboard"' /> Personel ekranı
+                            </a>
+                        }
+                        @if (User.IsInRole(AppRoles.Mutfak) || User.IsInRole(AppRoles.Admin))
+                        {
+                            <a class="@NavState("Kitchen", "KitchenOrders")" asp-area="Kitchen" asp-controller="KitchenOrders" asp-action="Index">
+                                <partial name="_Icon" model='"flame"' /> Mutfak ekranı
+                            </a>
+                        }
+                    </div>
+                }
+            </nav>
+
+            <div class="sidebar-foot">
+                <div class="user-chip">
+                    <span class="avatar">@initials</span>
+                    <span class="min-w-0">
+                        <span class="user-name d-block text-truncate">@shortName</span>
+                        <span class="user-role">@roleLabel</span>
+                    </span>
+                </div>
+                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                    <button class="btn btn-outline-dark btn-sm w-100" type="submit">
+                        <partial name="_Icon" model='"logout"' /> Çıkış yap
+                    </button>
+                </form>
+            </div>
         </aside>
-        <main class="flex-grow-1 p-4 admin-main">
-            @if (TempData["Success"] is string success)
-            {
-                <div class="alert alert-success">@success</div>
-            }
-            @if (TempData["Error"] is string error)
-            {
-                <div class="alert alert-danger">@error</div>
-            }
-            @RenderBody()
-        </main>
+
+        <div class="app-main">
+            <header class="app-topbar">
+                <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Menüyü aç">
+                    <partial name="_Icon" model='"menu"' />
+                </button>
+                <span class="topbar-title">@ViewData["Title"]</span>
+                <div class="topbar-spacer"></div>
+                <a class="btn btn-ghost btn-sm" asp-area="" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
+                    <partial name="_Icon" model='"phone"' />
+                    <span class="d-none d-md-inline">Müşteri menüsü</span>
+                </a>
+            </header>
+
+            <main class="app-content">
+                @RenderBody()
+            </main>
+        </div>
     </div>
+
+    <partial name="_Toasts" />
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,13 +1,61 @@
-@model UserFormViewModel
+﻿@model UserFormViewModel
 @{
     ViewData["Title"] = "Kullanıcı ekle";
 }
-<h1 class="h4">Kullanıcı ekle</h1>
-<form method="post">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <div class="mb-3"><label asp-for="FullName"></label><input asp-for="FullName" class="form-control" /></div>
-    <div class="mb-3"><label asp-for="Email"></label><input asp-for="Email" class="form-control" /></div>
-    <div class="mb-3"><label asp-for="Role"></label><select asp-for="Role" asp-items="Model.Roles" class="form-select"></select></div>
-    <div class="mb-3"><label asp-for="Password"></label><input asp-for="Password" class="form-control" /></div>
-    <button class="btn btn-dark">Kaydet</button>
-</form>
+
+<div class="page-head">
+    <div>
+        <h1>Kullanıcı ekle</h1>
+        <p class="page-sub">Rol, kullanıcının hangi ekranlara erişeceğini belirler</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-ghost btn-sm" asp-action="Index">
+            <partial name="_Icon" model='"arrow-left"' /> Kullanıcılara dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="panel">
+            <div class="panel-body">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="validation-summary-errors mb-3"></div>
+
+                    <div class="form-grid">
+                        <div>
+                            <label asp-for="FullName" class="form-label"></label>
+                            <input asp-for="FullName" class="form-control" />
+                            <span asp-validation-for="FullName" class="field-validation-error"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" autocomplete="off" />
+                            <span asp-validation-for="Email" class="field-validation-error"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Role" class="form-label"></label>
+                            <select asp-for="Role" asp-items="Model.Roles" class="form-select"></select>
+                            <span asp-validation-for="Role" class="field-validation-error"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" class="form-control" type="password" autocomplete="new-password" />
+                            <p class="field-hint">En az 8 karakter; büyük/küçük harf ve rakam içermelidir.</p>
+                            <span asp-validation-for="Password" class="field-validation-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-primary" type="submit">Kaydet</button>
+                        <a class="btn btn-ghost" asp-action="Index">Vazgeç</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

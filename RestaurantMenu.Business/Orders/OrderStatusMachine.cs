@@ -13,6 +13,7 @@ public static class OrderStatusMachine
     {
         return from switch
         {
+            // Proje dosyası §12: Yeni → Onaylandı / İptal. Mutfak Yeni'yi de hazırlamaya alabilir.
             OrderStatus.New => [OrderStatus.Confirmed, OrderStatus.Preparing, OrderStatus.Cancelled],
             OrderStatus.Confirmed => [OrderStatus.Preparing, OrderStatus.Cancelled],
             OrderStatus.Preparing => [OrderStatus.Ready],

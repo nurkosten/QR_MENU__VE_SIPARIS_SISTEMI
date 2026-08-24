@@ -1,8 +1,15 @@
-@model string
+﻿@model string
 @{
     ViewData["Title"] = "Geçersiz QR";
 }
-<div class="alert alert-warning">
-    @(string.IsNullOrWhiteSpace(Model) ? "QR kodu geçersiz veya masa aktif değil." : Model)
+<div class="state-page">
+    <div>
+        <div class="empty-icon"><partial name="_Icon" model='"qr"' /></div>
+        <h1 class="state-title">QR kodu okunamadı</h1>
+        <p class="state-text">
+            @(string.IsNullOrWhiteSpace(Model) ? "QR kodu geçersiz veya masa şu anda aktif değil." : Model)
+            Lütfen masanızdaki kodu tekrar okutun ya da personelden yardım isteyin.
+        </p>
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Ana sayfaya dön</a>
+    </div>
 </div>
-<a class="btn btn-dark" asp-controller="Home" asp-action="Index">Ana sayfa</a>

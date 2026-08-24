@@ -1,29 +1,80 @@
-@model IEnumerable<RestaurantTable>
+﻿@model IEnumerable<RestaurantTable>
 @{
-    ViewData["Title"] = "Masalar";
+    ViewData["Title"] = "Masalar ve QR";
+    var tables = Model.ToList();
 }
-<div class="d-flex justify-content-between mb-3">
-    <h1 class="h4">Masalar</h1>
-    <a class="btn btn-dark btn-sm" asp-action="Create">Yeni masa</a>
+
+<div class="page-head">
+    <div>
+        <h1>Masalar ve QR</h1>
+        <p class="page-sub">@tables.Count masa · @tables.Count(t => t.IsActive) tanesi aktif</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-primary btn-sm" asp-action="Create">
+            <partial name="_Icon" model='"plus"' /> Yeni masa
+        </a>
+    </div>
 </div>
-<table class="table bg-white">
-    <thead><tr><th>No</th><th>Ad</th><th>Durum</th><th></th></tr></thead>
-    <tbody>
-    @foreach (var table in Model)
+
+<div class="panel">
+    @if (tables.Count == 0)
     {
-        <tr>
-            <td>@table.TableNumber</td>
-            <td>@table.Name</td>
-            <td>@(table.IsActive ? "Aktif" : "Pasif")</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@table.Id">Düzenle</a> |
-                <a asp-action="Qr" asp-route-id="@table.Id">QR</a>
-                <form asp-action="RenewQr" method="post" class="d-inline">
-                    <input type="hidden" name="id" value="@table.Id" />
-                    <button class="btn btn-link btn-sm">Yenile</button>
-                </form>
-            </td>
-        </tr>
+        <div class="empty">
+            <div class="empty-icon"><partial name="_Icon" model='"table"' /></div>
+            <div class="empty-title">Henüz masa yok</div>
+            <p class="empty-text">Müşteri menüsünün açılabilmesi için en az bir aktif masa ve QR kodu gerekir.</p>
+            <a class="btn btn-primary btn-sm" asp-action="Create">Masa oluştur</a>
+        </div>
     }
-    </tbody>
-</table>
+    else
+    {
+        <div class="table-wrap">
+            <table class="table table-stack">
+                <thead>
+                    <tr>
+                        <th class="num">No</th>
+                        <th>Masa</th>
+                        <th>Durum</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var table in tables)
+                    {
+                        <tr>
+                            <td class="num" data-label="Masa no">@table.TableNumber</td>
+                            <td class="cell-main"><span class="cell-title">@table.Name</span></td>
+                            <td data-label="Durum">
+                                @if (table.IsActive)
+                                {
+                                    <span class="badge bg-success">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pasif</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    <a class="btn btn-outline-dark btn-sm" asp-action="Qr" asp-route-id="@table.Id">
+                                        <partial name="_Icon" model='"qr"' /> QR
+                                    </a>
+                                    <a class="btn btn-outline-dark btn-sm" asp-action="Edit" asp-route-id="@table.Id">
+                                        <partial name="_Icon" model='"pencil"' /> Düzenle
+                                    </a>
+                                    <form asp-action="RenewQr" method="post"
+                                          onsubmit="return confirm('QR kodu yenilenecek. Basılı eski kodlar geçersiz olacak. Devam edilsin mi?');">
+                                        <input type="hidden" name="id" value="@table.Id" />
+                                        <button type="submit" class="btn btn-ghost btn-sm">
+                                            <partial name="_Icon" model='"refresh"' /> Yenile
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

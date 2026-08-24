@@ -151,7 +151,7 @@ public class OrderManagerTests
             null);
 
         Assert.True(placed.Success);
-        Assert.Equal(OrderStatus.Confirmed, placed.Data!.Status);
+        Assert.Equal(OrderStatus.New, placed.Data!.Status);
 
         var kitchen = await orders.GetKitchenOrdersAsync();
         Assert.Contains(kitchen, o => o.Id == placed.Data.Id);

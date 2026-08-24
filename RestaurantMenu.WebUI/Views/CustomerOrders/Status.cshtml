@@ -1,34 +1,146 @@
-@model Order
+﻿@model Order
 @{
     ViewData["Title"] = "Sipariş durumu";
     var restaurantToken = (string)ViewBag.RestaurantToken;
     var tableToken = (string)ViewBag.TableToken;
+    var isCancelled = Model.Status == OrderStatus.Cancelled;
+
+    var steps = new[]
+    {
+        new { Status = OrderStatus.New, Label = "Sipariş alındı", Hint = "Siparişiniz sisteme iletildi" },
+        new { Status = OrderStatus.Confirmed, Label = "Onaylandı", Hint = "Mutfak siparişi onayladı" },
+        new { Status = OrderStatus.Preparing, Label = "Hazırlanıyor", Hint = "Ürünleriniz hazırlanıyor" },
+        new { Status = OrderStatus.Ready, Label = "Hazır", Hint = "Servis için hazır" },
+        new { Status = OrderStatus.Served, Label = "Servis edildi", Hint = "Afiyet olsun" }
+    };
+    var currentIndex = Array.FindIndex(steps, s => s.Status == Model.Status);
+    if (Model.Status == OrderStatus.Completed)
+    {
+        currentIndex = steps.Length - 1;
+    }
 }
-<div class="card">
-    <div class="card-body">
-        <span class="chip mb-2">Canlı takip</span>
-        <h1 class="h4 page-title">Sipariş @Model.OrderNumber</h1>
-        <p>Masa: @Model.Table.Name</p>
-        <p>Durum: <span class="badge bg-@DisplayTexts.StatusBadge(Model.Status)">@DisplayTexts.OrderStatus(Model.Status)</span></p>
-        <ul>
-            @foreach (var item in Model.Items)
-            {
-                <li>@item.ProductNameSnapshot x @item.Quantity — @item.LineTotal.ToString("C")</li>
-            }
-        </ul>
-        <p class="price">Toplam: @Model.TotalAmount.ToString("C")</p>
-        <a class="btn btn-outline-dark" asp-controller="Menu" asp-action="Index" asp-route-restaurantToken="@restaurantToken" asp-route-tableToken="@tableToken">Menüye dön</a>
+
+<div class="page-head">
+    <div>
+        <span class="chip brand mb-2"><span class="live-dot"></span> Canlı takip</span>
+        <h1>Sipariş @Model.OrderNumber</h1>
+        <p class="page-sub">@Model.Table.Name · @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-dark btn-sm" asp-controller="Menu" asp-action="Index"
+           asp-route-restaurantToken="@restaurantToken" asp-route-tableToken="@tableToken">
+            <partial name="_Icon" model='"arrow-left"' /> Menüye dön
+        </a>
     </div>
 </div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title">Durum</h2>
+                <span class="badge bg-@DisplayTexts.StatusBadge(Model.Status)" data-status-badge>@DisplayTexts.OrderStatus(Model.Status)</span>
+            </div>
+            <div class="panel-body">
+                @if (isCancelled)
+                {
+                    <div class="empty">
+                        <div class="empty-icon"><partial name="_Icon" model='"alert"' /></div>
+                        <div class="empty-title">Sipariş iptal edildi</div>
+                        <p class="empty-text">Bu sipariş iptal edilmiştir. Destek için garson çağırabilirsiniz.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="tracker" data-tracker>
+                        @for (var i = 0; i < steps.Length; i++)
+                        {
+                            var state = i < currentIndex ? "done" : i == currentIndex ? "current" : "";
+                            <div class="tracker-step @state" data-step="@steps[i].Status">
+                                <span class="tracker-dot">@(i + 1)</span>
+                                <span>
+                                    <span class="tracker-label d-block">@steps[i].Label</span>
+                                    <span class="tracker-hint">@steps[i].Hint</span>
+                                </span>
+                            </div>
+                        }
+                    </div>
+                    <p class="field-hint mb-0">Durum birkaç saniyede bir otomatik güncellenir.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="panel">
+            <div class="panel-head">
+                <h2 class="panel-title">Sipariş detayı</h2>
+                <span class="chip">@Model.Items.Sum(i => i.Quantity) ürün</span>
+            </div>
+            @foreach (var item in Model.Items)
+            {
+                <div class="list-row">
+                    <div class="list-row-main">
+                        <div class="list-row-title">@item.ProductNameSnapshot</div>
+                        <div class="list-row-sub">
+                            @item.UnitPrice.ToString("C") × @item.Quantity
+                            @if (!string.IsNullOrWhiteSpace(item.Note))
+                            {
+                                <span> · @item.Note</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="money">@item.LineTotal.ToString("C")</div>
+                </div>
+            }
+            <div class="panel-body">
+                @if (!string.IsNullOrWhiteSpace(Model.CustomerNote))
+                {
+                    <p class="field-hint mt-0">Sipariş notu: @Model.CustomerNote</p>
+                }
+                <div class="summary">
+                    <div class="summary-row total"><span>Toplam</span><span>@Model.TotalAmount.ToString("C")</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        async function refresh() {
-            const url = '@Url.Action("StatusJson", "CustomerOrders", new { number = Model.OrderNumber, restaurantToken, tableToken })';
-            const res = await fetch(url);
-            if (!res.ok) return;
-            const data = await res.json();
-            document.querySelector('.badge').textContent = data.statusText;
-        }
-        setInterval(refresh, 5000);
+        (function () {
+            var url = '@Url.Action("StatusJson", "CustomerOrders", new { number = Model.OrderNumber, restaurantToken, tableToken })';
+            var badge = document.querySelector('[data-status-badge]');
+            var tracker = document.querySelector('[data-tracker]');
+            var order = ['New', 'Confirmed', 'Preparing', 'Ready', 'Served'];
+            var badgeClasses = {
+                New: 'bg-warning', Confirmed: 'bg-info', Preparing: 'bg-primary', Ready: 'bg-success',
+                Served: 'bg-secondary', Completed: 'bg-dark', Cancelled: 'bg-danger'
+            };
+
+            function paint(data) {
+                if (badge) {
+                    badge.textContent = data.statusText;
+                    badge.className = 'badge ' + (badgeClasses[data.status] || 'bg-light');
+                }
+                if (!tracker) { return; }
+                var index = data.status === 'Completed' ? order.length - 1 : order.indexOf(data.status);
+                if (index < 0) { return; }
+                tracker.querySelectorAll('.tracker-step').forEach(function (step, i) {
+                    step.classList.toggle('done', i < index);
+                    step.classList.toggle('current', i === index);
+                });
+            }
+
+            async function refresh() {
+                try {
+                    var res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    if (!res.ok) { return; }
+                    paint(await res.json());
+                } catch (e) { /* geçici ağ hatalarını yoksay */ }
+            }
+
+            setInterval(refresh, 5000);
+        })();
     </script>
 }

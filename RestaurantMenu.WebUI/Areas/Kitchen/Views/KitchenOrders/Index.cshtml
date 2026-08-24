@@ -1,40 +1,65 @@
-@using RestaurantMenu.Business.Orders
 @model IReadOnlyList<Order>
 @{
-    ViewData["Title"] = "Mutfak";
+    ViewData["Title"] = "Mutfak ekranı";
     var incoming = Model.Where(o => o.Status is OrderStatus.New or OrderStatus.Confirmed).ToList();
     var preparing = Model.Where(o => o.Status == OrderStatus.Preparing).ToList();
     var ready = Model.Where(o => o.Status == OrderStatus.Ready).ToList();
 }
-<h1 class="h4 page-title">Mutfak ekranı</h1>
-<p class="text-muted mb-4"><span class="live-dot"></span> Canlı kuyruk · 8 sn yenilenir</p>
-<div class="desk">
+
+<div class="kds-bar">
     <div>
-        <h3 class="col-head">Yeni · amber</h3>
-        @foreach (var order in incoming)
-        {
-            @await Html.PartialAsync("_KitchenTicket", order)
-        }
+        <h1>Mutfak ekranı</h1>
+        <p class="page-sub"><span class="live-dot"></span> Canlı hazırlık kuyruğu · @Model.Count açık sipariş</p>
     </div>
-    <div>
-        <h3 class="col-head">Hazırlanıyor · cyan</h3>
-        @foreach (var order in preparing)
-        {
-            @await Html.PartialAsync("_KitchenTicket", order)
-        }
-    </div>
-    <div>
-        <h3 class="col-head">Hazır · mint</h3>
-        @foreach (var order in ready)
-        {
-            @await Html.PartialAsync("_KitchenTicket", order)
-        }
+    <div class="refresh-meter" data-refresh="10">
+        <span class="bar"><span></span></span>
+        <span>10 sn'de bir yenilenir</span>
     </div>
 </div>
-@if (Model.Count == 0)
-{
-    <p class="text-muted">Mutfakta bekleyen sipariş yok.</p>
-}
-@section Scripts {
-    <script>setTimeout(() => location.reload(), 8000);</script>
-}
+
+<div class="kds">
+    <section class="kds-col new">
+        <div class="kds-col-head">
+            <span class="kds-col-title">Yeni</span>
+            <span class="kds-count">@incoming.Count</span>
+        </div>
+        @if (incoming.Count == 0)
+        {
+            <div class="kds-empty">Bekleyen yeni sipariş yok</div>
+        }
+        @foreach (var order in incoming)
+        {
+            <partial name="_KitchenTicket" model="order" />
+        }
+    </section>
+
+    <section class="kds-col prep">
+        <div class="kds-col-head">
+            <span class="kds-col-title">Hazırlanıyor</span>
+            <span class="kds-count">@preparing.Count</span>
+        </div>
+        @if (preparing.Count == 0)
+        {
+            <div class="kds-empty">Hazırlanan sipariş yok</div>
+        }
+        @foreach (var order in preparing)
+        {
+            <partial name="_KitchenTicket" model="order" />
+        }
+    </section>
+
+    <section class="kds-col ready">
+        <div class="kds-col-head">
+            <span class="kds-col-title">Hazır</span>
+            <span class="kds-count">@ready.Count</span>
+        </div>
+        @if (ready.Count == 0)
+        {
+            <div class="kds-empty">Servisi bekleyen sipariş yok</div>
+        }
+        @foreach (var order in ready)
+        {
+            <partial name="_KitchenTicket" model="order" />
+        }
+    </section>
+</div>

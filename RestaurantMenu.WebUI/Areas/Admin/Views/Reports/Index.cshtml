@@ -1,25 +1,93 @@
-@model SalesReportDto
+﻿@model SalesReportDto
 @{
     ViewData["Title"] = "Raporlar";
     var range = (string)(ViewBag.Range ?? "daily");
-}
-<h1 class="h4">Satış raporları</h1>
-<div class="mb-3">
-    <a class="btn btn-sm @(range=="daily"?"btn-dark":"btn-outline-dark")" asp-action="Index" asp-route-range="daily">Günlük</a>
-    <a class="btn btn-sm @(range=="weekly"?"btn-dark":"btn-outline-dark")" asp-action="Index" asp-route-range="weekly">Haftalık</a>
-    <a class="btn btn-sm @(range=="monthly"?"btn-dark":"btn-outline-dark")" asp-action="Index" asp-route-range="monthly">Aylık</a>
-</div>
-<p>Sipariş: <strong>@Model.OrderCount</strong> — Ciro: <strong>@Model.TotalSales.ToString("C")</strong></p>
-<table class="table bg-white">
-    <thead><tr><th>Ürün</th><th>Adet</th><th>Tutar</th></tr></thead>
-    <tbody>
-    @foreach (var row in Model.TopProducts)
+    var rangeLabel = range switch
     {
-        <tr>
-            <td>@row.ProductName</td>
-            <td>@row.Quantity</td>
-            <td>@row.Amount.ToString("C")</td>
-        </tr>
+        "weekly" => "Son 7 gün",
+        "monthly" => "Son 30 gün",
+        _ => "Bugün"
+    };
+    var average = Model.OrderCount > 0 ? Model.TotalSales / Model.OrderCount : 0m;
+    var topProducts = Model.TopProducts.ToList();
+}
+
+<div class="page-head">
+    <div>
+        <h1>Satış raporları</h1>
+        <p class="page-sub">@rangeLabel için özet</p>
+    </div>
+    <div class="page-actions">
+        <div class="seg">
+            <a class="@(range == "daily" ? "on" : "")" asp-action="Index" asp-route-range="daily">Günlük</a>
+            <a class="@(range == "weekly" ? "on" : "")" asp-action="Index" asp-route-range="weekly">Haftalık</a>
+            <a class="@(range == "monthly" ? "on" : "")" asp-action="Index" asp-route-range="monthly">Aylık</a>
+        </div>
+    </div>
+</div>
+
+<div class="stat-grid mb-4">
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Sipariş adedi</span>
+            <span class="stat-icon info"><partial name="_Icon" model='"receipt"' /></span>
+        </div>
+        <div class="stat-value">@Model.OrderCount</div>
+        <div class="stat-foot">@rangeLabel</div>
+    </div>
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Toplam ciro</span>
+            <span class="stat-icon ok"><partial name="_Icon" model='"cash"' /></span>
+        </div>
+        <div class="stat-value">@Model.TotalSales.ToString("C")</div>
+        <div class="stat-foot">@rangeLabel</div>
+    </div>
+    <div class="stat">
+        <div class="stat-top">
+            <span class="stat-label">Ortalama sepet</span>
+            <span class="stat-icon prep"><partial name="_Icon" model='"chart"' /></span>
+        </div>
+        <div class="stat-value">@average.ToString("C")</div>
+        <div class="stat-foot">Sipariş başına ortalama tutar</div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <h2 class="panel-title">En çok satan ürünler</h2>
+        <span class="chip">@topProducts.Count kayıt</span>
+    </div>
+    @if (topProducts.Count == 0)
+    {
+        <div class="empty">
+            <div class="empty-icon"><partial name="_Icon" model='"chart"' /></div>
+            <div class="empty-title">Bu dönem için satış yok</div>
+            <p class="empty-text">Seçtiğiniz tarih aralığında tamamlanmış sipariş bulunmuyor.</p>
+        </div>
     }
-    </tbody>
-</table>
+    else
+    {
+        <div class="table-wrap">
+            <table class="table table-stack">
+                <thead>
+                    <tr>
+                        <th>Ürün</th>
+                        <th class="num">Adet</th>
+                        <th class="num">Tutar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in topProducts)
+                    {
+                        <tr>
+                            <td class="cell-main"><span class="cell-title">@row.ProductName</span></td>
+                            <td class="num" data-label="Adet">@row.Quantity</td>
+                            <td class="num money" data-label="Tutar">@row.Amount.ToString("C")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

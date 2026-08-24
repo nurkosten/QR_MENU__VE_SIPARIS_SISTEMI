@@ -2,21 +2,88 @@
 @{
     ViewData["Title"] = "İşletme bilgileri";
 }
-<h1 class="h4">İşletme bilgileri</h1>
+
+<div class="page-head">
+    <div>
+        <h1>İşletme bilgileri</h1>
+        <p class="page-sub">Müşteri menüsünün başlığında görünen bilgiler</p>
+    </div>
+</div>
+
 <form method="post" enctype="multipart/form-data">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="Id" />
-    <div class="mb-3"><label asp-for="Name"></label><input asp-for="Name" class="form-control" /></div>
-    <div class="mb-3"><label asp-for="Address"></label><input asp-for="Address" class="form-control" /></div>
-    <div class="mb-3"><label asp-for="Phone"></label><input asp-for="Phone" class="form-control" /></div>
-    <div class="mb-3"><label asp-for="WorkingHours"></label><input asp-for="WorkingHours" class="form-control" /></div>
-    <div class="mb-3"><label asp-for="PublicToken"></label><input asp-for="PublicToken" class="form-control" /></div>
-    <div class="mb-3"><label asp-for="Description"></label><textarea asp-for="Description" class="form-control"></textarea></div>
-    <div class="form-check mb-3"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive"></label></div>
-    @if (!string.IsNullOrWhiteSpace(Model.ExistingLogoUrl))
-    {
-        <img src="@Model.ExistingLogoUrl" class="mb-2" alt="" style="height:80px;" />
-    }
-    <div class="mb-3"><input type="file" name="logo" class="form-control" /></div>
-    <button class="btn btn-dark">Kaydet</button>
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="panel">
+                <div class="panel-head"><h2 class="panel-title">Genel bilgiler</h2></div>
+                <div class="panel-body">
+                    <div asp-validation-summary="ModelOnly" class="validation-summary-errors mb-3"></div>
+                    <div class="form-grid">
+                        <div class="col-full">
+                            <label asp-for="Name" class="form-label"></label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="field-validation-error"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Phone" class="form-label"></label>
+                            <input asp-for="Phone" class="form-control" />
+                            <span asp-validation-for="Phone" class="field-validation-error"></span>
+                        </div>
+                        <div>
+                            <label asp-for="WorkingHours" class="form-label"></label>
+                            <input asp-for="WorkingHours" class="form-control" placeholder="Örn. 09:00 - 23:00" />
+                            <span asp-validation-for="WorkingHours" class="field-validation-error"></span>
+                        </div>
+                        <div class="col-full">
+                            <label asp-for="Address" class="form-label"></label>
+                            <input asp-for="Address" class="form-control" />
+                            <span asp-validation-for="Address" class="field-validation-error"></span>
+                        </div>
+                        <div class="col-full">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="field-validation-error"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="panel mb-3">
+                <div class="panel-head"><h2 class="panel-title">Menü erişimi</h2></div>
+                <div class="panel-body">
+                    <label asp-for="PublicToken" class="form-label"></label>
+                    <input asp-for="PublicToken" class="form-control" />
+                    <p class="field-hint">Menü adreslerinde kullanılan işletme anahtarı. Değiştirirseniz basılı QR kodları yenilemeniz gerekir.</p>
+                    <span asp-validation-for="PublicToken" class="field-validation-error"></span>
+                    <div class="form-check form-switch mt-3">
+                        <input asp-for="IsActive" class="form-check-input" />
+                        <label asp-for="IsActive" class="form-check-label"></label>
+                    </div>
+                    <p class="field-hint">İşletme pasifken QR menü açılmaz.</p>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head"><h2 class="panel-title">Logo</h2></div>
+                <div class="panel-body">
+                    @if (!string.IsNullOrWhiteSpace(Model.ExistingLogoUrl))
+                    {
+                        <img src="@Model.ExistingLogoUrl" alt="İşletme logosu" class="mb-2 rounded" style="height:80px;object-fit:contain;" />
+                    }
+                    <input type="file" name="logo" class="form-control" accept="image/*" />
+                    <p class="field-hint">Yeni logo yüklemezseniz mevcut logo korunur.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Kaydet</button>
+    </div>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

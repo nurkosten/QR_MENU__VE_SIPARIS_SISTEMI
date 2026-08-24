@@ -1,0 +1,17 @@
+@*
+    TempData mesajlarını toast'a çevirir. Sunucu sözleşmesi ("Success" / "Error")
+    aynı kalır; yalnızca sunum katmanı değişir.
+*@
+@{
+    var successMessage = TempData["Success"] as string;
+    var errorMessage = TempData["Error"] as string;
+}
+<div class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+@if (!string.IsNullOrWhiteSpace(successMessage))
+{
+    <div data-toast="@successMessage" data-toast-type="ok" hidden></div>
+}
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div data-toast="@errorMessage" data-toast-type="err" hidden></div>
+}

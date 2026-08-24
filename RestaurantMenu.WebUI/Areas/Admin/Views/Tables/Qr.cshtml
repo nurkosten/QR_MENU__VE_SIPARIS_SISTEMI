@@ -1,12 +1,54 @@
-@model RestaurantTable
+﻿@model RestaurantTable
 @{
-    ViewData["Title"] = "Masa QR";
+    ViewData["Title"] = Model.Name + " QR kodu";
     var menuUrl = Url.Action("Index", "Menu", new { area = "", restaurantToken = Model.Restaurant.PublicToken, tableToken = Model.QrToken }, Context.Request.Scheme);
 }
-<h1 class="h4">@Model.Name QR kodu</h1>
-<p>Menü adresi: <code>@menuUrl</code></p>
-<img src="@Url.Action("QrImage", new { id = Model.Id })" alt="QR" class="img-fluid p-3 bg-white rounded-4" style="max-width:280px;" />
-<p class="mt-3">
-    <a class="btn btn-outline-dark" asp-action="QrImage" asp-route-id="@Model.Id">PNG indir</a>
-    <a class="btn btn-link" asp-action="Index">Masalara dön</a>
-</p>
+
+<div class="page-head no-print">
+    <div>
+        <h1>@Model.Name QR kodu</h1>
+        <p class="page-sub">Masa @Model.TableNumber · müşteri bu kodu okutarak menüyü açar</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-dark btn-sm" asp-action="QrImage" asp-route-id="@Model.Id">
+            <partial name="_Icon" model='"download"' /> PNG indir
+        </a>
+        <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+            <partial name="_Icon" model='"printer"' /> Yazdır
+        </button>
+        <a class="btn btn-ghost btn-sm" asp-action="Index">
+            <partial name="_Icon" model='"arrow-left"' /> Masalara dön
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="panel qr-card">
+            <div class="panel-body">
+                <span class="qr-frame">
+                    <img src="@Url.Action("QrImage", new { id = Model.Id })" alt="@Model.Name QR kodu" style="width:100%;max-width:240px;" />
+                </span>
+                <p class="mt-3 mb-0"><strong>@Model.Name</strong></p>
+                <p class="field-hint mt-0">Masa @Model.TableNumber</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7 no-print">
+        <div class="panel">
+            <div class="panel-head"><h2 class="panel-title">Menü bağlantısı</h2></div>
+            <div class="panel-body">
+                <code class="qr-url">@menuUrl</code>
+                <p class="field-hint">
+                    Bu adres masaya özeldir. QR kodunu yenilerseniz eski basılı kodlar geçersiz olur ve
+                    bağlantı değişir.
+                </p>
+                @if (!Model.IsActive)
+                {
+                    <div class="alert alert-warning mb-0">Masa pasif durumda. QR kod okutulduğunda menü açılmaz.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
