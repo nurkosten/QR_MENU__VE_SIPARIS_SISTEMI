@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="QRCoder" Version="1.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RestaurantMenu.DataAccess\RestaurantMenu.DataAccess.csproj" />
+    <ProjectReference Include="..\RestaurantMenu.Entities\RestaurantMenu.Entities.csproj" />
+  </ItemGroup>
+
+</Project>
