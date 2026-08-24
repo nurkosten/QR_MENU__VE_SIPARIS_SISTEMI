@@ -1,0 +1,22 @@
+@model RestaurantFormViewModel
+@{
+    ViewData["Title"] = "İşletme bilgileri";
+}
+<h1 class="h4">İşletme bilgileri</h1>
+<form method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Id" />
+    <div class="mb-3"><label asp-for="Name"></label><input asp-for="Name" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="Address"></label><input asp-for="Address" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="Phone"></label><input asp-for="Phone" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="WorkingHours"></label><input asp-for="WorkingHours" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="PublicToken"></label><input asp-for="PublicToken" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="Description"></label><textarea asp-for="Description" class="form-control"></textarea></div>
+    <div class="form-check mb-3"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive"></label></div>
+    @if (!string.IsNullOrWhiteSpace(Model.ExistingLogoUrl))
+    {
+        <img src="@Model.ExistingLogoUrl" class="mb-2" alt="" style="height:80px;" />
+    }
+    <div class="mb-3"><input type="file" name="logo" class="form-control" /></div>
+    <button class="btn btn-dark">Kaydet</button>
+</form>

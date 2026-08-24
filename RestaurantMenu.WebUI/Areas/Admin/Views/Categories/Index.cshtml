@@ -1,0 +1,22 @@
+@model IEnumerable<Category>
+@{
+    ViewData["Title"] = "Kategoriler";
+}
+<div class="d-flex justify-content-between mb-3">
+    <h1 class="h4">Kategoriler</h1>
+    <a class="btn btn-dark btn-sm" asp-action="Create">Yeni</a>
+</div>
+<table class="table bg-white">
+    <thead><tr><th>Ad</th><th>Sıra</th><th>Durum</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Name</td>
+            <td>@item.DisplayOrder</td>
+            <td>@(item.IsActive ? "Aktif" : "Pasif")</td>
+            <td><a asp-action="Edit" asp-route-id="@item.Id">Düzenle</a></td>
+        </tr>
+    }
+    </tbody>
+</table>

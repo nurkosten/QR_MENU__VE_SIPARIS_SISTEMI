@@ -1,0 +1,12 @@
+@model RestaurantTable
+@{
+    ViewData["Title"] = "Masa QR";
+    var menuUrl = Url.Action("Index", "Menu", new { area = "", restaurantToken = Model.Restaurant.PublicToken, tableToken = Model.QrToken }, Context.Request.Scheme);
+}
+<h1 class="h4">@Model.Name QR kodu</h1>
+<p>Menü adresi: <code>@menuUrl</code></p>
+<img src="@Url.Action("QrImage", new { id = Model.Id })" alt="QR" class="img-fluid p-3 bg-white rounded-4" style="max-width:280px;" />
+<p class="mt-3">
+    <a class="btn btn-outline-dark" asp-action="QrImage" asp-route-id="@Model.Id">PNG indir</a>
+    <a class="btn btn-link" asp-action="Index">Masalara dön</a>
+</p>

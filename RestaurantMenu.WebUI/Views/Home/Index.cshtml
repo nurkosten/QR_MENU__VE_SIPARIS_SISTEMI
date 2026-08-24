@@ -1,0 +1,35 @@
+﻿@model Restaurant?
+@{
+    ViewData["Title"] = "QR Kodlu Restoran Menü";
+}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card hero-card">
+            <div class="card-body">
+                <span class="chip mb-3">Canlı menü</span>
+                <h1 class="page-title h2">@((Model?.Name) ?? "QR Restoran Menü")</h1>
+                <p class="text-muted">Aktif masa bulunamadı. QR kodu olan bir masa eklenince müşteri menüsü burada açılır.</p>
+                @if (!string.IsNullOrWhiteSpace(Model?.Address))
+                {
+                    <p class="mb-1">@Model!.Address</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model?.Phone))
+                {
+                    <p class="mb-1">@Model!.Phone</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model?.WorkingHours))
+                {
+                    <p>Çalışma saatleri: @Model!.WorkingHours</p>
+                }
+                <hr class="border" />
+                <p class="small text-muted mb-2">Demo girişleri</p>
+                <ul class="small text-muted">
+                    <li>Admin: admin@restaurant.local / Admin123!</li>
+                    <li>Personel: personel@restaurant.local / Personel123!</li>
+                    <li>Mutfak: mutfak@restaurant.local / Mutfak123!</li>
+                </ul>
+                <a class="btn btn-dark" asp-controller="Account" asp-action="Login">Yönetim paneli</a>
+            </div>
+        </div>
+    </div>
+</div>

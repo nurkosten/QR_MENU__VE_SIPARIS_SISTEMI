@@ -1,0 +1,63 @@
+@using RestaurantMenu.Business.Orders
+@model IReadOnlyList<Order>
+@{
+    ViewData["Title"] = "Personel siparişleri";
+    var requests = ViewBag.Requests as IReadOnlyList<ServiceRequest> ?? [];
+}
+<h1 class="h4 page-title">Personel ekranı</h1>
+<h2 class="h5 mt-4">Çağrılar</h2>
+@if (requests.Count == 0)
+{
+    <p class="text-muted">Açık çağrı yok.</p>
+}
+else
+{
+    foreach (var request in requests)
+    {
+        <div class="ticket hot d-flex justify-content-between flex-wrap gap-2">
+            <div>@request.Table.Name — @DisplayTexts.ServiceType(request.Type) — @DisplayTexts.ServiceStatus(request.Status)</div>
+            <div>
+                @if (request.Status == ServiceRequestStatus.Pending)
+                {
+                    <form asp-action="HandleRequest" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@request.Id" />
+                        <input type="hidden" name="status" value="@ServiceRequestStatus.Acknowledged" />
+                        <button class="btn btn-sm btn-outline-dark">Alındı</button>
+                    </form>
+                }
+                <form asp-action="HandleRequest" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@request.Id" />
+                    <input type="hidden" name="status" value="@ServiceRequestStatus.Completed" />
+                    <button class="btn btn-sm btn-dark">Tamamla</button>
+                </form>
+            </div>
+        </div>
+    }
+}
+<h2 class="h5 mt-4">Siparişler</h2>
+@foreach (var order in Model)
+{
+    var ticketClass = order.Status switch
+    {
+        OrderStatus.New or OrderStatus.Confirmed => "hot",
+        OrderStatus.Preparing => "prep",
+        OrderStatus.Ready => "ok",
+        _ => ""
+    };
+    <div class="ticket @ticketClass">
+        <strong>@order.OrderNumber</strong> — @order.Table.Name
+        <span class="badge bg-@DisplayTexts.StatusBadge(order.Status)">@DisplayTexts.OrderStatus(order.Status)</span>
+        <div class="price">@order.TotalAmount.ToString("C")</div>
+        @foreach (var next in OrderStatusMachine.GetAllowedTargets(order.Status))
+        {
+            if (OrderStatusPolicy.CanChange(new[] { AppRoles.Personel }, order.Status, next) || User.IsInRole(AppRoles.Admin))
+            {
+                <form asp-action="ChangeStatus" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@order.Id" />
+                    <input type="hidden" name="nextStatus" value="@next" />
+                    <button class="btn btn-sm btn-outline-dark mt-2">@DisplayTexts.OrderStatus(next)</button>
+                </form>
+            }
+        }
+    </div>
+}

@@ -1,0 +1,13 @@
+@model DashboardStatsDto
+@{
+    ViewData["Title"] = "Özet";
+}
+<h1 class="h4 page-title mb-4">Günlük özet</h1>
+<div class="row g-3">
+    <div class="col-md-4"><div class="card p-3 stat-card">Bugünkü sipariş<br /><strong>@Model.TodayOrderCount</strong></div></div>
+    <div class="col-md-4"><div class="card p-3 stat-card">Bugünkü satış<br /><strong>@Model.TodaySales.ToString("C")</strong></div></div>
+    <div class="col-md-4"><div class="card p-3 stat-card">Açık sipariş<br /><strong>@Model.OpenOrderCount</strong></div></div>
+    <div class="col-md-4"><div class="card p-3 stat-card">Bekleyen çağrı<br /><strong>@Model.PendingServiceRequestCount</strong></div></div>
+    <div class="col-md-4"><div class="card p-3 stat-card">Aktif masa<br /><strong>@Model.ActiveTableCount</strong></div></div>
+    <div class="col-md-4"><div class="card p-3 stat-card">Satıştaki ürün<br /><strong>@Model.AvailableProductCount</strong></div></div>
+</div>

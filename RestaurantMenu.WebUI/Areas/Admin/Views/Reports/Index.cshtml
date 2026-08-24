@@ -1,0 +1,25 @@
+@model SalesReportDto
+@{
+    ViewData["Title"] = "Raporlar";
+    var range = (string)(ViewBag.Range ?? "daily");
+}
+<h1 class="h4">Satış raporları</h1>
+<div class="mb-3">
+    <a class="btn btn-sm @(range=="daily"?"btn-dark":"btn-outline-dark")" asp-action="Index" asp-route-range="daily">Günlük</a>
+    <a class="btn btn-sm @(range=="weekly"?"btn-dark":"btn-outline-dark")" asp-action="Index" asp-route-range="weekly">Haftalık</a>
+    <a class="btn btn-sm @(range=="monthly"?"btn-dark":"btn-outline-dark")" asp-action="Index" asp-route-range="monthly">Aylık</a>
+</div>
+<p>Sipariş: <strong>@Model.OrderCount</strong> — Ciro: <strong>@Model.TotalSales.ToString("C")</strong></p>
+<table class="table bg-white">
+    <thead><tr><th>Ürün</th><th>Adet</th><th>Tutar</th></tr></thead>
+    <tbody>
+    @foreach (var row in Model.TopProducts)
+    {
+        <tr>
+            <td>@row.ProductName</td>
+            <td>@row.Quantity</td>
+            <td>@row.Amount.ToString("C")</td>
+        </tr>
+    }
+    </tbody>
+</table>

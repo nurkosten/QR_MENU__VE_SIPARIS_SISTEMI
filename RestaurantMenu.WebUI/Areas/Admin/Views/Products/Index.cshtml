@@ -1,0 +1,23 @@
+@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "Ürünler";
+}
+<div class="d-flex justify-content-between mb-3">
+    <h1 class="h4">Ürünler</h1>
+    <a class="btn btn-dark btn-sm" asp-action="Create">Yeni</a>
+</div>
+<table class="table bg-white">
+    <thead><tr><th>Ad</th><th>Kategori</th><th>Fiyat</th><th>Satış</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Name</td>
+            <td>@item.Category.Name</td>
+            <td>@item.Price.ToString("C")</td>
+            <td>@(item.IsAvailable && item.IsActive ? "Açık" : "Kapalı")</td>
+            <td><a asp-action="Edit" asp-route-id="@item.Id">Düzenle</a></td>
+        </tr>
+    }
+    </tbody>
+</table>

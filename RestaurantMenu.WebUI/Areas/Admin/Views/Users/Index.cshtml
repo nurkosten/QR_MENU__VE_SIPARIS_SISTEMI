@@ -1,0 +1,22 @@
+@model List<(ApplicationUser User, string Roles)>
+@{
+    ViewData["Title"] = "Kullanıcılar";
+}
+<div class="d-flex justify-content-between mb-3">
+    <h1 class="h4">Kullanıcılar</h1>
+    <a class="btn btn-dark btn-sm" asp-action="Create">Yeni kullanıcı</a>
+</div>
+<table class="table bg-white">
+    <thead><tr><th>Ad</th><th>E-posta</th><th>Rol</th><th>Durum</th></tr></thead>
+    <tbody>
+    @foreach (var row in Model)
+    {
+        <tr>
+            <td>@row.User.FullName</td>
+            <td>@row.User.Email</td>
+            <td>@row.Roles</td>
+            <td>@(row.User.IsActive ? "Aktif" : "Pasif")</td>
+        </tr>
+    }
+    </tbody>
+</table>

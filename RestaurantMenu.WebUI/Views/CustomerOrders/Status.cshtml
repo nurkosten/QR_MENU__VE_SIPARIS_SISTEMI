@@ -1,0 +1,34 @@
+@model Order
+@{
+    ViewData["Title"] = "Sipariş durumu";
+    var restaurantToken = (string)ViewBag.RestaurantToken;
+    var tableToken = (string)ViewBag.TableToken;
+}
+<div class="card">
+    <div class="card-body">
+        <span class="chip mb-2">Canlı takip</span>
+        <h1 class="h4 page-title">Sipariş @Model.OrderNumber</h1>
+        <p>Masa: @Model.Table.Name</p>
+        <p>Durum: <span class="badge bg-@DisplayTexts.StatusBadge(Model.Status)">@DisplayTexts.OrderStatus(Model.Status)</span></p>
+        <ul>
+            @foreach (var item in Model.Items)
+            {
+                <li>@item.ProductNameSnapshot x @item.Quantity — @item.LineTotal.ToString("C")</li>
+            }
+        </ul>
+        <p class="price">Toplam: @Model.TotalAmount.ToString("C")</p>
+        <a class="btn btn-outline-dark" asp-controller="Menu" asp-action="Index" asp-route-restaurantToken="@restaurantToken" asp-route-tableToken="@tableToken">Menüye dön</a>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        async function refresh() {
+            const url = '@Url.Action("StatusJson", "CustomerOrders", new { number = Model.OrderNumber, restaurantToken, tableToken })';
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const data = await res.json();
+            document.querySelector('.badge').textContent = data.statusText;
+        }
+        setInterval(refresh, 5000);
+    </script>
+}

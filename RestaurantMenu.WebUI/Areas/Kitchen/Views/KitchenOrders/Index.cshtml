@@ -1,0 +1,40 @@
+@using RestaurantMenu.Business.Orders
+@model IReadOnlyList<Order>
+@{
+    ViewData["Title"] = "Mutfak";
+    var incoming = Model.Where(o => o.Status is OrderStatus.New or OrderStatus.Confirmed).ToList();
+    var preparing = Model.Where(o => o.Status == OrderStatus.Preparing).ToList();
+    var ready = Model.Where(o => o.Status == OrderStatus.Ready).ToList();
+}
+<h1 class="h4 page-title">Mutfak ekranı</h1>
+<p class="text-muted mb-4"><span class="live-dot"></span> Canlı kuyruk · 8 sn yenilenir</p>
+<div class="desk">
+    <div>
+        <h3 class="col-head">Yeni · amber</h3>
+        @foreach (var order in incoming)
+        {
+            @await Html.PartialAsync("_KitchenTicket", order)
+        }
+    </div>
+    <div>
+        <h3 class="col-head">Hazırlanıyor · cyan</h3>
+        @foreach (var order in preparing)
+        {
+            @await Html.PartialAsync("_KitchenTicket", order)
+        }
+    </div>
+    <div>
+        <h3 class="col-head">Hazır · mint</h3>
+        @foreach (var order in ready)
+        {
+            @await Html.PartialAsync("_KitchenTicket", order)
+        }
+    </div>
+</div>
+@if (Model.Count == 0)
+{
+    <p class="text-muted">Mutfakta bekleyen sipariş yok.</p>
+}
+@section Scripts {
+    <script>setTimeout(() => location.reload(), 8000);</script>
+}

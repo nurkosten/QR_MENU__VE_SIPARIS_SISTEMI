@@ -1,0 +1,29 @@
+@model IEnumerable<RestaurantTable>
+@{
+    ViewData["Title"] = "Masalar";
+}
+<div class="d-flex justify-content-between mb-3">
+    <h1 class="h4">Masalar</h1>
+    <a class="btn btn-dark btn-sm" asp-action="Create">Yeni masa</a>
+</div>
+<table class="table bg-white">
+    <thead><tr><th>No</th><th>Ad</th><th>Durum</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var table in Model)
+    {
+        <tr>
+            <td>@table.TableNumber</td>
+            <td>@table.Name</td>
+            <td>@(table.IsActive ? "Aktif" : "Pasif")</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@table.Id">Düzenle</a> |
+                <a asp-action="Qr" asp-route-id="@table.Id">QR</a>
+                <form asp-action="RenewQr" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@table.Id" />
+                    <button class="btn btn-link btn-sm">Yenile</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

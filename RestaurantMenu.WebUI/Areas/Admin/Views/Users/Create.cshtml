@@ -1,0 +1,13 @@
+@model UserFormViewModel
+@{
+    ViewData["Title"] = "Kullanıcı ekle";
+}
+<h1 class="h4">Kullanıcı ekle</h1>
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3"><label asp-for="FullName"></label><input asp-for="FullName" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="Email"></label><input asp-for="Email" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="Role"></label><select asp-for="Role" asp-items="Model.Roles" class="form-select"></select></div>
+    <div class="mb-3"><label asp-for="Password"></label><input asp-for="Password" class="form-control" /></div>
+    <button class="btn btn-dark">Kaydet</button>
+</form>

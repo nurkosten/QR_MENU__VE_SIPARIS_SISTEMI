@@ -1,0 +1,86 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model MenuPageViewModel
+@{
+    ViewData["Title"] = Model.Restaurant.Name;
+    var i = 0;
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 page-title mb-1">@Model.Restaurant.Name</h1>
+        <span class="chip">@Model.Table.Name · QR menü</span>
+    </div>
+</div>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-7">
+        <input name="q" value="@Model.Search" class="form-control" placeholder="Ürün ara…" />
+    </div>
+    <div class="col-5 col-md-3">
+        <select name="categoryId" class="form-select" asp-items="@(new SelectList(Model.Categories, "Id", "Name", Model.CategoryId))" onchange="this.form.submit()">
+            <option value="">Tümü</option>
+        </select>
+    </div>
+</form>
+<div class="cats mb-3">
+    <a class="cat @(Model.CategoryId is null ? "on" : "")" href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = Model.Table.QrToken, q = Model.Search })">Tümü</a>
+    @foreach (var category in Model.Categories)
+    {
+        <a class="cat @(Model.CategoryId == category.Id ? "on" : "")" href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = Model.Table.QrToken, categoryId = category.Id, q = Model.Search })">@category.Name</a>
+    }
+</div>
+<div class="d-flex gap-2 mb-3">
+    <form asp-controller="Service" asp-action="RequestHelp" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="restaurantToken" value="@Model.Restaurant.PublicToken" />
+        <input type="hidden" name="tableToken" value="@Model.Table.QrToken" />
+        <input type="hidden" name="type" value="@ServiceRequestType.CallWaiter" />
+        <button class="btn btn-outline-secondary btn-sm">Garson çağır</button>
+    </form>
+    <form asp-controller="Service" asp-action="RequestHelp" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="restaurantToken" value="@Model.Restaurant.PublicToken" />
+        <input type="hidden" name="tableToken" value="@Model.Table.QrToken" />
+        <input type="hidden" name="type" value="@ServiceRequestType.RequestBill" />
+        <button class="btn btn-outline-secondary btn-sm">Hesap iste</button>
+    </form>
+</div>
+@foreach (var category in Model.Categories)
+{
+    if (category.Products.Count == 0)
+    {
+        continue;
+    }
+    <h2 class="h5 mt-4">@category.Name</h2>
+    foreach (var product in category.Products)
+    {
+        var thumb = "t" + (i++ % 4);
+        <div class="card mb-2">
+            <div class="card-body product-card">
+                <div class="thumb @thumb"></div>
+                <div>
+                    <strong>@product.Name</strong>
+                    <div class="small text-muted">@product.Description</div>
+                    <div class="price mb-2">@product.Price.ToString("C")</div>
+                    <form asp-controller="Cart" asp-action="Add" method="post" class="row g-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="restaurantToken" value="@Model.Restaurant.PublicToken" />
+                        <input type="hidden" name="tableToken" value="@Model.Table.QrToken" />
+                        <input type="hidden" name="productId" value="@product.Id" />
+                        <div class="col-4 col-md-2">
+                            <input type="number" name="quantity" value="1" min="1" max="20" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-8 col-md-6">
+                            <input name="note" class="form-control form-control-sm" placeholder="Not" />
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <button class="btn btn-dark btn-sm w-100">Sepete ekle</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+}
+<a class="dock mt-4" asp-controller="Cart" asp-action="Index">
+    <span>Sepete git</span>
+    <span>@Model.CartCount ürün</span>
+</a>

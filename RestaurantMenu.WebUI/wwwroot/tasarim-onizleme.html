@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tasarım önizlemesi · QR Menü</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --ink: #160f0c;
+            --ink-2: #231814;
+            --cream: #fff4ea;
+            --paper: #ffe8d2;
+            --amber: #ff7a3d;
+            --amber-2: #ffb347;
+            --coral: #ff4d6d;
+            --mint: #3ee0a2;
+            --cyan: #4fd6ff;
+            --text: #f8efe7;
+            --muted: #c9b5a6;
+        }
+
+        * { box-sizing: border-box; }
+        html, body { margin: 0; min-height: 100%; }
+        body {
+            font-family: Outfit, system-ui, sans-serif;
+            color: var(--text);
+            background: radial-gradient(1200px 600px at 10% -10%, #5a2a14 0%, transparent 55%),
+                        radial-gradient(900px 500px at 100% 0%, #3a1840 0%, transparent 50%),
+                        var(--ink);
+            overflow-x: hidden;
+        }
+
+        .blobs {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        }
+        .blob {
+            position: absolute; border-radius: 50%; filter: blur(60px); opacity: .35;
+            animation: drift 14s ease-in-out infinite alternate;
+        }
+        .blob.a { width: 340px; height: 340px; background: #ff7a3d; top: -40px; left: -60px; }
+        .blob.b { width: 280px; height: 280px; background: #7b3cff; right: -40px; top: 20%; animation-delay: -4s; }
+        .blob.c { width: 260px; height: 260px; background: #3ee0a2; bottom: -80px; left: 30%; animation-delay: -8s; }
+
+        @keyframes drift {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(40px, 30px) scale(1.15); }
+        }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(24px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes pop {
+            0% { transform: scale(.7); opacity: 0; }
+            70% { transform: scale(1.08); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 122, 61, .55); }
+            50% { box-shadow: 0 0 0 12px rgba(255, 122, 61, 0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .wrap { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 28px 20px 80px; }
+
+        header.hero { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 28px; animation: rise .6s ease both; }
+        header.hero h1 { margin: 0 0 6px; font-size: 36px; letter-spacing: -0.04em; }
+        header.hero p { margin: 0; color: var(--muted); max-width: 560px; line-height: 1.5; }
+        .badge-live {
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
+            border-radius: 999px; background: rgba(62,224,162,.12); color: var(--mint); font-weight: 600; font-size: 13px;
+        }
+        .badge-live i { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); animation: pulse 1.6s infinite; display: inline-block; box-shadow: none; }
+
+        .tabs {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; animation: rise .7s ease both;
+        }
+        .tabs button {
+            border: 0; cursor: pointer; color: var(--text); background: rgba(255,255,255,.06);
+            padding: 10px 16px; border-radius: 999px; font: inherit; font-weight: 600;
+            transition: transform .2s ease, background .2s ease;
+        }
+        .tabs button:hover { transform: translateY(-2px); background: rgba(255,255,255,.12); }
+        .tabs button.active {
+            background: linear-gradient(90deg, var(--amber), var(--coral));
+            box-shadow: 0 10px 24px rgba(255,77,109,.25);
+        }
+
+        .stage { display: none; animation: slideIn .45s cubic-bezier(.2,.8,.2,1); }
+        .stage.on { display: block; }
+
+        .phone {
+            width: min(390px, 100%); margin: 0 auto; background: #0c0908;
+            border: 8px solid #2a1d18; border-radius: 36px; overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,.45); min-height: 740px; position: relative;
+        }
+        .phone-bar {
+            height: 28px; display: flex; justify-content: center; align-items: end; padding-bottom: 6px;
+        }
+        .phone-bar span { width: 90px; height: 8px; background: #1c1411; border-radius: 8px; }
+        .screen { padding: 8px 16px 90px; }
+
+        .brand { display: flex; justify-content: space-between; align-items: center; }
+        .brand h2 { margin: 0; font-size: 22px; }
+        .chip {
+            background: rgba(255,122,61,.18); color: var(--amber-2); padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+        }
+        .search {
+            margin: 14px 0; width: 100%; border: 0; border-radius: 16px; padding: 12px 14px;
+            background: #2a1f1a; color: white; font: inherit;
+        }
+        .cats { display: flex; gap: 8px; overflow: auto; padding-bottom: 8px; }
+        .cats button {
+            flex: 0 0 auto; border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer;
+            background: #2a1f1a; color: var(--muted); transition: .25s ease;
+        }
+        .cats button.on { background: var(--amber); color: #1a0d08; transform: scale(1.04); }
+
+        .card {
+            display: grid; grid-template-columns: 88px 1fr auto; gap: 12px; align-items: center;
+            background: linear-gradient(180deg, #2b1c16, #221510);
+            border-radius: 20px; padding: 12px; margin: 12px 0;
+            animation: rise .5s ease both;
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+        .card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 16px 32px rgba(0,0,0,.35); }
+        .card:nth-child(1) { animation-delay: .05s; }
+        .card:nth-child(2) { animation-delay: .12s; }
+        .card:nth-child(3) { animation-delay: .2s; }
+        .thumb {
+            width: 88px; height: 88px; border-radius: 16px;
+            background: linear-gradient(135deg, #ffb347, #ff4d6d);
+        }
+        .thumb.b { background: linear-gradient(135deg, #ff7a3d, #7b3cff); }
+        .thumb.c { background: linear-gradient(135deg, #4fd6ff, #3ee0a2); }
+        .meta small { color: var(--muted); }
+        .price { font-weight: 800; color: var(--amber-2); }
+        .add {
+            width: 42px; height: 42px; border: 0; border-radius: 14px; cursor: pointer; font-size: 22px; font-weight: 700;
+            background: linear-gradient(180deg, var(--amber), var(--coral)); color: white;
+            transition: transform .15s ease;
+        }
+        .add:active { transform: scale(.88); }
+
+        .dock {
+            position: absolute; left: 16px; right: 16px; bottom: 16px;
+            background: linear-gradient(90deg, var(--amber), var(--coral));
+            background-size: 200% 100%; animation: shimmer 3s linear infinite;
+            border-radius: 18px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+            font-weight: 700; cursor: pointer; box-shadow: 0 12px 30px rgba(255,77,109,.35);
+        }
+        .dock .count { animation: pop .4s ease; }
+
+        .desk {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+        }
+        @media (max-width: 900px) { .desk { grid-template-columns: 1fr; } }
+        .col h3 { margin: 0 0 12px; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+        .ticket {
+            background: #241814; border-radius: 20px; padding: 16px; margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,.06); animation: rise .45s ease both;
+            transition: transform .2s ease;
+        }
+        .ticket:hover { transform: translateY(-6px); }
+        .ticket.hot { border-color: rgba(255,122,61,.7); animation: pulse 2s infinite, rise .45s ease both; }
+        .ticket.prep { border-color: rgba(79,214,255,.5); }
+        .ticket.ok { border-color: rgba(62,224,162,.5); }
+        .ticket ul { margin: 8px 0 12px; padding-left: 18px; color: var(--muted); }
+        .ticket button {
+            border: 0; border-radius: 12px; padding: 8px 12px; font: inherit; font-weight: 700; cursor: pointer;
+            background: var(--amber); color: #1a0d08;
+        }
+        .ticket.prep button { background: var(--cyan); color: #062028; }
+        .ticket.ok button { background: var(--mint); color: #062018; }
+
+        .login {
+            max-width: 420px; margin: 40px auto; background: rgba(255,255,255,.06); backdrop-filter: blur(16px);
+            border-radius: 28px; padding: 32px; animation: rise .5s ease both;
+            border: 1px solid rgba(255,255,255,.08);
+        }
+        .login input {
+            width: 100%; margin: 8px 0 16px; padding: 12px 14px; border-radius: 14px; border: 0; background: #2a1f1a; color: white; font: inherit;
+        }
+        .login .go {
+            width: 100%; border: 0; border-radius: 16px; padding: 14px; font: inherit; font-weight: 800; cursor: pointer;
+            background: linear-gradient(90deg, var(--amber), var(--coral)); color: white;
+        }
+
+        .palette { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+        .swatch { width: 44px; height: 44px; border-radius: 14px; animation: pop .5s ease both; }
+        .note { color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 720px; }
+        .grid2 { display: grid; grid-template-columns: 1.1fr .9fr; gap: 28px; align-items: start; }
+        @media (max-width: 980px) { .grid2 { grid-template-columns: 1fr; } }
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; background: #1c1410; color: var(--mint);
+            padding: 12px 16px; border-radius: 14px; font-weight: 700; display: none; z-index: 9;
+            animation: pop .35s ease;
+        }
+        .toast.on { display: block; }
+    </style>
+</head>
+<body>
+    <div class="blobs">
+        <div class="blob a"></div>
+        <div class="blob b"></div>
+        <div class="blob c"></div>
+    </div>
+    <div class="wrap">
+        <header class="hero">
+            <div>
+                <span class="badge-live"><i></i> Canlı tasarım önizlemesi</span>
+                <h1>Nur Burger · hareketli arayüz</h1>
+                <p>Espresso zemin, amber–coral aksan, cam kartlar, kayan geçişler ve nabız atan mutfak kuyruğu. Bu sayfa henüz taslak; onaylarsan asıl MVC ekranlarına taşınır.</p>
+                <div class="palette">
+                    <div class="swatch" style="background:#160f0c"></div>
+                    <div class="swatch" style="background:#ff7a3d"></div>
+                    <div class="swatch" style="background:#ff4d6d"></div>
+                    <div class="swatch" style="background:#ffb347"></div>
+                    <div class="swatch" style="background:#4fd6ff"></div>
+                    <div class="swatch" style="background:#3ee0a2"></div>
+                </div>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="active" data-tab="menu">QR Menü</button>
+            <button data-tab="cart">Sepet</button>
+            <button data-tab="kitchen">Mutfak</button>
+            <button data-tab="login">Giriş</button>
+        </nav>
+
+        <section id="menu" class="stage on">
+            <div class="grid2">
+                <div class="phone">
+                    <div class="phone-bar"><span></span></div>
+                    <div class="screen">
+                        <div class="brand">
+                            <div>
+                                <h2>Nur Burger</h2>
+                                <small style="color:var(--muted)">Masa 8 · QR menü</small>
+                            </div>
+                            <span class="chip">Açık</span>
+                        </div>
+                        <input class="search" placeholder="Ürün ara…" />
+                        <div class="cats">
+                            <button class="on">Burgerler</button>
+                            <button>İçecekler</button>
+                            <button>Tatlı</button>
+                        </div>
+                        <article class="card">
+                            <div class="thumb"></div>
+                            <div class="meta">
+                                <strong>Classic Smash</strong><br />
+                                <small>Cheddar, turşu, sos</small><br />
+                                <span class="price">185 ₺</span>
+                            </div>
+                            <button class="add" data-name="Classic Smash">+</button>
+                        </article>
+                        <article class="card">
+                            <div class="thumb b"></div>
+                            <div class="meta">
+                                <strong>Double Fire</strong><br />
+                                <small>Acı sos, çift köfte</small><br />
+                                <span class="price">210 ₺</span>
+                            </div>
+                            <button class="add" data-name="Double Fire">+</button>
+                        </article>
+                        <article class="card">
+                            <div class="thumb c"></div>
+                            <div class="meta">
+                                <strong>Cheese Melt</strong><br />
+                                <small>Üç peynir, karamelize soğan</small><br />
+                                <span class="price">198 ₺</span>
+                            </div>
+                            <button class="add" data-name="Cheese Melt">+</button>
+                        </article>
+                    </div>
+                    <div class="dock" data-tab-jump="cart">
+                        <span>Sepete git</span>
+                        <span class="count" id="cartCount">0 ürün</span>
+                    </div>
+                </div>
+                <div>
+                    <p class="note">Kartlar yukarı kayarak girer, üzerine gelince hafifçe kalkar. Kategori pill’i seçilince büyür. Alttaki sepet çubuğu amber–coral gradient ile kayar. “+” basınca rozet pop animasyonu çalışır.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="cart" class="stage">
+            <div class="phone">
+                <div class="phone-bar"><span></span></div>
+                <div class="screen">
+                    <h2>Sepet</h2>
+                    <p style="color:var(--muted)">Masa 8</p>
+                    <article class="card">
+                        <div class="thumb"></div>
+                        <div class="meta"><strong>Classic Smash</strong><br /><span class="price">185 ₺ × 1</span></div>
+                    </article>
+                    <article class="card">
+                        <div class="thumb b"></div>
+                        <div class="meta"><strong>Double Fire</strong><br /><span class="price">210 ₺ × 1</span></div>
+                    </article>
+                    <p style="font-size:22px;font-weight:800">Toplam 395 ₺</p>
+                    <div class="dock" id="sendOrder">Siparişi mutfağa gönder</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="kitchen" class="stage">
+            <div class="desk">
+                <div class="col">
+                    <h3>Yeni · amber nabız</h3>
+                    <div class="ticket hot">
+                        <strong>RM-1042</strong> · Masa 8
+                        <ul><li>Classic Smash × 1</li><li>Double Fire × 1</li></ul>
+                        <button>Hazırlamaya al</button>
+                    </div>
+                </div>
+                <div class="col">
+                    <h3>Hazırlanıyor · cyan</h3>
+                    <div class="ticket prep">
+                        <strong>RM-1040</strong> · Masa 3
+                        <ul><li>Cheese Melt × 2</li></ul>
+                        <button>Hazır</button>
+                    </div>
+                </div>
+                <div class="col">
+                    <h3>Hazır · mint</h3>
+                    <div class="ticket ok">
+                        <strong>RM-1038</strong> · Masa 12
+                        <ul><li>Classic Smash × 1</li></ul>
+                        <button>Teslim</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="login" class="stage">
+            <form class="login" onsubmit="event.preventDefault()">
+                <h2>Personel girişi</h2>
+                <p class="note">Cam kart, yumuşak yükseliş, tek vurgu butonu.</p>
+                <label>E-posta</label>
+                <input value="mutfak@restaurant.local" />
+                <label>Şifre</label>
+                <input type="password" value="••••••••" />
+                <button class="go" type="button" data-tab-jump="kitchen">Mutfağa gir</button>
+            </form>
+        </section>
+    </div>
+    <div class="toast" id="toast">Sepete eklendi</div>
+    <script>
+        const tabs = document.querySelectorAll('.tabs button');
+        const stages = document.querySelectorAll('.stage');
+        function show(id) {
+            stages.forEach(s => s.classList.toggle('on', s.id === id));
+            tabs.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+        }
+        tabs.forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
+        document.querySelectorAll('[data-tab-jump]').forEach(el => {
+            el.addEventListener('click', () => show(el.dataset.tabJump));
+        });
+
+        let n = 0;
+        const toast = document.getElementById('toast');
+        document.querySelectorAll('.add').forEach(btn => {
+            btn.addEventListener('click', () => {
+                n += 1;
+                const c = document.getElementById('cartCount');
+                c.textContent = n + ' ürün';
+                c.style.animation = 'none';
+                c.offsetHeight;
+                c.style.animation = 'pop .4s ease';
+                toast.textContent = btn.dataset.name + ' sepete eklendi';
+                toast.classList.add('on');
+                setTimeout(() => toast.classList.remove('on'), 1400);
+            });
+        });
+
+        document.querySelectorAll('.cats button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.cats button').forEach(x => x.classList.remove('on'));
+                btn.classList.add('on');
+            });
+        });
+
+        document.getElementById('sendOrder').addEventListener('click', () => {
+            toast.textContent = 'Sipariş mutfağa düştü';
+            toast.classList.add('on');
+            setTimeout(() => { toast.classList.remove('on'); show('kitchen'); }, 700);
+        });
+    </script>
+</body>
+</html>

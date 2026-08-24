@@ -1,0 +1,8 @@
+@model string
+@{
+    ViewData["Title"] = "Geçersiz QR";
+}
+<div class="alert alert-warning">
+    @(string.IsNullOrWhiteSpace(Model) ? "QR kodu geçersiz veya masa aktif değil." : Model)
+</div>
+<a class="btn btn-dark" asp-controller="Home" asp-action="Index">Ana sayfa</a>

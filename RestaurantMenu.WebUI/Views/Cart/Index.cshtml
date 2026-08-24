@@ -1,0 +1,42 @@
+@model CartPageViewModel
+@{
+    ViewData["Title"] = "Sepet";
+}
+<h1 class="h4 page-title">Sepet</h1>
+@if (Model.Lines.Count == 0)
+{
+    <div class="card"><div class="card-body">Sepetiniz boş.</div></div>
+}
+else
+{
+    <p><span class="chip">@Model.Table.Name</span></p>
+    foreach (var line in Model.Lines)
+    {
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <strong>@line.Name</strong>
+                    <span class="price">@line.LineTotal.ToString("C")</span>
+                </div>
+                <small class="text-muted">@line.UnitPrice.ToString("C") x @line.Quantity</small>
+                @if (!string.IsNullOrWhiteSpace(line.Note))
+                {
+                    <div class="small">Not: @line.Note</div>
+                }
+                <form asp-action="Update" method="post" class="d-flex gap-2 mt-2">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@line.ProductId" />
+                    <input type="hidden" name="note" value="@line.Note" />
+                    <input type="number" name="quantity" value="@line.Quantity" min="0" class="form-control form-control-sm" style="width:90px;" />
+                    <button class="btn btn-sm btn-outline-dark">Güncelle</button>
+                </form>
+            </div>
+        </div>
+    }
+    <h3 class="h5 price">Toplam: @Model.Total.ToString("C")</h3>
+    <form asp-action="Checkout" method="post">
+        @Html.AntiForgeryToken()
+        <textarea name="customerNote" class="form-control mb-2" placeholder="Sipariş notu"></textarea>
+        <button class="btn btn-dark w-100 dock fixed-off">Siparişi mutfağa gönder</button>
+    </form>
+}

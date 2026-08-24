@@ -1,0 +1,12 @@
+@model CategoryFormViewModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Kategori ekle" : "Kategori düzenle";
+}
+<h1 class="h4">@ViewData["Title"]</h1>
+<form method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="mb-3"><label asp-for="Name"></label><input asp-for="Name" class="form-control" /></div>
+    <div class="mb-3"><label asp-for="DisplayOrder"></label><input asp-for="DisplayOrder" class="form-control" /></div>
+    <div class="form-check mb-3"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive" class="form-check-label"></label></div>
+    <button class="btn btn-dark">Kaydet</button>
+</form>

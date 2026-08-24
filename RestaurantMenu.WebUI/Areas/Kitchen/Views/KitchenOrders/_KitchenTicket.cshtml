@@ -1,0 +1,32 @@
+@using RestaurantMenu.Business.Orders
+@model Order
+@{
+    var ticketClass = Model.Status switch
+    {
+        OrderStatus.New or OrderStatus.Confirmed => "hot",
+        OrderStatus.Preparing => "prep",
+        OrderStatus.Ready => "ok",
+        _ => ""
+    };
+}
+<div class="ticket @ticketClass">
+    <strong>@Model.OrderNumber</strong> — @Model.Table.Name
+    <span class="badge bg-@DisplayTexts.StatusBadge(Model.Status)">@DisplayTexts.OrderStatus(Model.Status)</span>
+    <ul class="mb-2">
+        @foreach (var item in Model.Items)
+        {
+            <li>@item.ProductNameSnapshot x @item.Quantity @item.Note</li>
+        }
+    </ul>
+    @foreach (var next in OrderStatusMachine.GetAllowedTargets(Model.Status))
+    {
+        if (OrderStatusPolicy.CanChange(new[] { AppRoles.Mutfak }, Model.Status, next) || User.IsInRole(AppRoles.Admin))
+        {
+            <form asp-action="ChangeStatus" method="post" class="d-inline">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="nextStatus" value="@next" />
+                <button class="btn btn-sm btn-dark">@DisplayTexts.OrderStatus(next)</button>
+            </form>
+        }
+    }
+</div>
