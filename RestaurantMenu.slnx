@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="RestaurantMenu.Business/RestaurantMenu.Business.csproj" />
+  <Project Path="RestaurantMenu.DataAccess/RestaurantMenu.DataAccess.csproj" />
+  <Project Path="RestaurantMenu.Entities/RestaurantMenu.Entities.csproj" />
+  <Project Path="RestaurantMenu.Tests/RestaurantMenu.Tests.csproj" />
+  <Project Path="RestaurantMenu.WebUI/RestaurantMenu.WebUI.csproj" />
+</Solution>
