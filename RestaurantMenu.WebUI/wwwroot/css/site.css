@@ -57,8 +57,7 @@
     --sidebar-w: 256px;
     --topbar-h: 64px;
     --header-h: 61px;
-    --content-max: 1560px;
-    --reading-max: 1080px;
+    --page-gutter: clamp(0.75rem, 2.4vw, 1.75rem);
 
     --font-ui: "Inter", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --font-display: "Outfit", var(--font-ui);
@@ -75,14 +74,21 @@
 /* 2. Temel --------------------------------------------------------------- */
 * { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+    -webkit-text-size-adjust: 100%;
+    width: 100%;
+    overflow-x: clip;
+}
 
 img, svg, video, canvas { max-width: 100%; }
 img { height: auto; }
 
 body {
     margin: 0;
+    width: 100%;
+    max-width: 100%;
     min-height: 100vh;
+    overflow-x: clip;
     font-family: var(--font-ui);
     font-size: .95rem;
     line-height: 1.55;
@@ -234,7 +240,7 @@ svg { flex: 0 0 auto; }
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 0 1.5rem;
+    padding: 0 var(--page-gutter);
     background: rgba(255, 255, 255, .88);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--line);
@@ -256,10 +262,9 @@ svg { flex: 0 0 auto; }
 .topbar-spacer { flex: 1 1 auto; min-width: 0; }
 
 .app-content {
-    padding: 1.75rem 1.5rem 3rem;
+    padding: 1.5rem var(--page-gutter) 2.5rem;
     width: 100%;
-    max-width: var(--content-max);
-    margin-inline: auto;
+    max-width: none;
 }
 
 .sidebar-toggle {
@@ -292,8 +297,8 @@ svg { flex: 0 0 auto; }
         z-index: 35;
     }
     .sidebar-toggle { display: grid; }
-    .app-content { padding: 1.25rem 1rem 2.5rem; }
-    .app-topbar { padding: 0 1rem; }
+    .app-content { padding: 1rem var(--page-gutter) 2rem; }
+    .app-topbar { padding: 0 var(--page-gutter); }
 }
 
 /* Müşteri tarafı üst bar */
@@ -328,9 +333,21 @@ svg { flex: 0 0 auto; }
 }
 
 .page-wrap { display: flex; flex-direction: column; min-height: 100vh; }
-.page-body { flex: 1; padding: 1.5rem 0 2rem; }
-.page-body > .container { max-width: var(--reading-max); }
-.site-header-inner, .site-footer .container { max-width: var(--reading-max); }
+.page-body { flex: 1; padding: 1rem 0 1.5rem; }
+
+.page-shell {
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
+    padding-left: calc(var(--page-gutter) + env(safe-area-inset-left, 0px));
+    padding-right: calc(var(--page-gutter) + env(safe-area-inset-right, 0px));
+}
+
+.page-shell > .row {
+    --bs-gutter-x: 1rem;
+    margin-left: 0;
+    margin-right: 0;
+}
 
 /* 4. Butonlar & form ----------------------------------------------------- */
 .btn {
@@ -828,7 +845,11 @@ a.list-row:hover svg { color: var(--brand-600); }
 .menu-section-head h2 { font-size: 1.1rem; margin: 0; }
 .menu-section-head .count { font-size: .8rem; color: var(--ink-400); }
 
-.product-list { display: grid; gap: .75rem; }
+.product-list {
+    display: grid;
+    gap: .75rem;
+    grid-template-columns: 1fr;
+}
 
 .product-card {
     background: var(--surface);
@@ -949,9 +970,16 @@ a.list-row:hover svg { color: var(--brand-600); }
     line-height: 1;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
     .product-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .service-row { max-width: 520px; }
+}
+
+@media (min-width: 1100px) {
+    .product-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1500px) {
+    .product-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* 10. Sepet & sipariş takibi --------------------------------------------- */
@@ -1033,7 +1061,7 @@ a.list-row:hover svg { color: var(--brand-600); }
 }
 
 @media (min-width: 768px) { .kds { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 1.15rem; } }
-@media (min-width: 1400px) { .kds { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .kds { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 .kds-col { min-width: 0; }
 
@@ -1170,8 +1198,9 @@ a.list-row:hover svg { color: var(--brand-600); }
 /* 12. Auth, hata, yazdırma ----------------------------------------------- */
 .auth-shell {
     min-height: 100vh;
+    width: 100%;
     display: grid;
-    grid-template-columns: 1.1fr 1fr;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
     background: var(--surface);
 }
 
@@ -1197,31 +1226,18 @@ a.list-row:hover svg { color: var(--brand-600); }
     background: radial-gradient(circle, rgba(242, 107, 29, .32), transparent 65%);
 }
 
-.auth-aside h2 { color: #fff; font-size: clamp(1.5rem, 1.1rem + 1.2vw, 1.95rem); line-height: 1.25; position: relative; max-width: 420px; }
-.auth-aside p { color: #aeb9c6; max-width: 400px; position: relative; }
+.auth-aside h2 { color: #fff; font-size: clamp(1.5rem, 1.1rem + 1.2vw, 1.95rem); line-height: 1.25; position: relative; max-width: 28rem; }
+.auth-aside p { color: #aeb9c6; max-width: 26rem; position: relative; }
 
 .auth-points { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; gap: .7rem; position: relative; }
 .auth-points li { display: flex; gap: .6rem; align-items: center; color: #d5dce4; font-size: .9rem; }
 .auth-points svg { color: var(--brand-500); flex: 0 0 auto; }
 
-.auth-main { display: grid; place-items: center; padding: 2rem 1.5rem; }
-.auth-card-wrap { width: 100%; max-width: 380px; }
+.auth-main { display: grid; place-items: center; padding: 2rem var(--page-gutter); }
+.auth-card-wrap { width: min(100%, 24rem); }
 .auth-card { width: 100%; }
 .auth-card h1 { font-size: 1.5rem; margin: 0 0 .3rem; }
 .auth-card .lead-sub { color: var(--ink-400); font-size: .9rem; margin-bottom: 1.75rem; }
-
-.demo-accounts { margin-top: 1.5rem; border-top: 1px dashed var(--line-strong); padding-top: 1rem; }
-.demo-accounts .section-title { margin-bottom: .5rem; }
-.demo-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .5rem;
-    font-size: .8rem;
-    padding: .35rem 0;
-    color: var(--ink-500);
-}
-.demo-row code { color: var(--ink-700); background: var(--surface-2); padding: .1rem .35rem; border-radius: 5px; font-size: .76rem; }
 
 @media (max-width: 991.98px) {
     .auth-shell { grid-template-columns: 1fr; }
@@ -1276,6 +1292,7 @@ a.list-row:hover svg { color: var(--brand-600); }
 .auth-shell { min-height: 100dvh; }
 .page-wrap { min-height: 100dvh; }
 .app-sidebar { height: 100dvh; }
+.app-shell { width: 100%; min-width: 0; }
 
 /* Uzun kelimeler dar kolonlarda taşmasın */
 .cell-title, .cart-line-name, .product-name, .list-row-title, .op-no, .kds-order-no, .user-name {
@@ -1283,8 +1300,8 @@ a.list-row:hover svg { color: var(--brand-600); }
 }
 
 /* Çentikli ekranlarda alt güvenli alan */
-.page-body { padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px)); }
-.cart-bar { bottom: calc(.75rem + env(safe-area-inset-bottom, 0px)); }
+.page-body { padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
+.cart-bar { bottom: calc(.5rem + env(safe-area-inset-bottom, 0px)); }
 
 /* Girişte yan panel gizlendiğinde marka mobil başlıkta görünür */
 .auth-mobile-brand { display: none; }
@@ -1293,7 +1310,7 @@ a.list-row:hover svg { color: var(--brand-600); }
     .auth-mobile-brand { display: flex; align-items: center; gap: .65rem; margin-bottom: 1.75rem; }
     .auth-mobile-brand .brand-name { color: var(--ink-900); }
     .auth-mobile-brand .brand-sub { color: var(--ink-400); }
-    .auth-main { padding: 2.5rem 1.25rem; }
+    .auth-main { padding: 1.75rem var(--page-gutter) 2.25rem; }
 }
 
 /* Tablolar: dar ekranda satır başına kart görünümü */
@@ -1355,6 +1372,8 @@ a.list-row:hover svg { color: var(--brand-600); }
 }
 
 @media (max-width: 575.98px) {
+    :root { --page-gutter: 0.7rem; }
+
     .page-head { flex-direction: column; align-items: stretch; gap: .85rem; }
     .page-actions { width: 100%; }
     .page-actions > .btn { flex: 1 1 auto; }
@@ -1378,9 +1397,6 @@ a.list-row:hover svg { color: var(--brand-600); }
 
     .op-actions .btn { flex: 1 1 auto; }
     .cart-line-actions form { flex: 1 1 auto; }
-
-    .demo-row { flex-wrap: wrap; }
-    .demo-row code { word-break: break-all; }
 }
 
 /* Çok dar telefonlar (~320px) */

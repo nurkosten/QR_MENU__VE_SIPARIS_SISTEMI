@@ -13,7 +13,7 @@
 
         <div class="mb-3">
             <label asp-for="Email" class="form-label"></label>
-            <input asp-for="Email" class="form-control" autocomplete="username" placeholder="ornek@restaurant.local" />
+            <input asp-for="Email" class="form-control" autocomplete="username" placeholder="E-posta adresiniz" />
             <span asp-validation-for="Email" class="field-validation-error"></span>
         </div>
         <div class="mb-3">
@@ -28,13 +28,6 @@
 
         <button class="btn btn-primary btn-lg btn-block" type="submit">Giriş yap</button>
     </form>
-
-    <div class="demo-accounts">
-        <p class="section-title">Demo hesapları</p>
-        <div class="demo-row"><span>Yönetici</span><code>admin@restaurant.local / Admin123!</code></div>
-        <div class="demo-row"><span>Personel</span><code>personel@restaurant.local / Personel123!</code></div>
-        <div class="demo-row"><span>Mutfak</span><code>mutfak@restaurant.local / Mutfak123!</code></div>
-    </div>
 
     <p class="text-center mt-4 mb-0">
         <a class="btn btn-ghost btn-sm" asp-controller="Home" asp-action="Index">

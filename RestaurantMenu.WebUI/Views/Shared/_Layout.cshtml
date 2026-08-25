@@ -19,7 +19,7 @@
 <body>
     <div class="page-wrap">
         <header class="site-header">
-            <div class="container site-header-inner">
+            <div class="page-shell site-header-inner">
                 <a class="site-brand" asp-controller="Home" asp-action="Index">
                     <span class="brand-mark"><partial name="_Icon" model='"dish"' /></span>
                     <span>
@@ -44,13 +44,13 @@
         </header>
 
         <main class="page-body">
-            <div class="container">
+            <div class="page-shell">
                 @RenderBody()
             </div>
         </main>
 
         <footer class="site-footer">
-            <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <div class="page-shell d-flex flex-wrap justify-content-between gap-2">
                 <span>QR Restoran Menü ve Sipariş Yönetim Sistemi</span>
                 <span>&copy; @DateTime.Now.Year</span>
             </div>
