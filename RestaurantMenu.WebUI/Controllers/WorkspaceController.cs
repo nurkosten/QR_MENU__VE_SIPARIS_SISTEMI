@@ -30,6 +30,8 @@ public class WorkspaceController : Controller
         }
 
         _current.Set(id);
+        HttpContext.Session.ClearCart();
+        TempData["CustomerMenuPreviewReload"] = "1";
 
         var referer = Request.GetTypedHeaders().Referer;
         if (referer is not null)

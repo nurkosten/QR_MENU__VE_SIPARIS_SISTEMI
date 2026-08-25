@@ -62,6 +62,35 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @if (ViewBag.PreviewMode is true)
+    {
+        <script>
+            (function () {
+                try {
+                    var channel = new BroadcastChannel('rm-customer-preview');
+                    channel.onmessage = function (event) {
+                        var data = event && event.data;
+                        if (!data) {
+                            return;
+                        }
+                        if (data.home) {
+                            if (location.pathname !== '/') {
+                                location.replace('/');
+                            }
+                            return;
+                        }
+                        if (!data.restaurantToken || !data.tableToken) {
+                            return;
+                        }
+                        var next = '/menu/' + encodeURIComponent(data.restaurantToken) + '/' + encodeURIComponent(data.tableToken) + '?preview=1';
+                        if (location.pathname.toLowerCase() + location.search.toLowerCase() !== next.toLowerCase()) {
+                            location.replace(next);
+                        }
+                    };
+                } catch (e) { }
+            })();
+        </script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

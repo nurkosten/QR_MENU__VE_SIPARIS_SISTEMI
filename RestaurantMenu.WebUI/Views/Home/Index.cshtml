@@ -1,13 +1,15 @@
 ﻿@model Restaurant?
 @{
     ViewData["Title"] = Model?.Name ?? "QR Restoran Menü";
+    var isStaff = User.Identity?.IsAuthenticated == true
+        && (User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.Personel) || User.IsInRole(AppRoles.Mutfak));
 }
 
 <section class="menu-hero mb-4">
     <h1>@(Model?.Name ?? "QR Restoran Menü")</h1>
     <p class="hero-note">
         @(string.IsNullOrWhiteSpace(Model?.Description)
-            ? "Masaya özel QR kod ile açılan dijital menü ve sipariş yönetim sistemi."
+            ? "Masaya özel QR kod ile açılan dijital menü."
             : Model!.Description)
     </p>
     <div class="hero-meta">
@@ -26,36 +28,20 @@
     </div>
 </section>
 
-<div class="row g-3">
-    <div class="col-lg-7">
-        <div class="panel">
-            <div class="panel-head">
-                <h2 class="panel-title">Menü nasıl açılır?</h2>
-            </div>
-            <div class="panel-body">
-                <div class="empty">
-                    <div class="empty-icon"><partial name="_Icon" model='"qr"' /></div>
-                    <div class="empty-title">Aktif masa bulunamadı</div>
-                    <p class="empty-text">
-                        Müşteri menüsü masaya özel QR kod ile açılır. Yönetim panelinden aktif bir masa
-                        oluşturduğunuzda menü bağlantısı burada devreye girer.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-5">
-        <div class="panel">
-            <div class="panel-head">
-                <h2 class="panel-title">Yönetim</h2>
-            </div>
-            <div class="panel-body">
-                <p class="text-muted">Masa, kategori, ürün ve siparişleri yönetmek için panele giriş yapın.</p>
-                <a class="btn btn-primary btn-block" asp-controller="Account" asp-action="Login">
-                    <partial name="_Icon" model='"shield"' /> Yönetim paneline git
+<div class="panel">
+    <div class="panel-body">
+        <div class="empty">
+            <div class="empty-icon"><partial name="_Icon" model='"qr"' /></div>
+            <div class="empty-title">Menü şu anda kapalı</div>
+            <p class="empty-text">
+                Menü masadaki QR kod ile açılır. Şu anda bu işletme için aktif bir masa bulunmuyor.
+            </p>
+            @if (isStaff && User.IsInRole(AppRoles.Admin))
+            {
+                <a class="btn btn-primary btn-sm" asp-area="Admin" asp-controller="Tables" asp-action="Create">
+                    <partial name="_Icon" model='"plus"' /> Masa oluştur
                 </a>
-            </div>
+            }
         </div>
     </div>
 </div>

@@ -130,6 +130,7 @@
         document.querySelectorAll("table.js-datatable").forEach(function (table) {
             if (table.dataset.dtReady === "1") { return; }
             table.dataset.dtReady = "1";
+            table.style.width = "100%";
             var nosort = Array.prototype.map.call(table.querySelectorAll("thead th"), function (th, i) {
                 return th.classList.contains("no-sort") ? i : null;
             }).filter(function (i) { return i !== null; });

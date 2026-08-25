@@ -73,7 +73,8 @@ public class CurrentRestaurant : ICurrentRestaurant
 
         return await _db.RestaurantTables
             .AsNoTracking()
-            .Where(t => t.RestaurantId == id.Value && t.IsActive)
+            .Include(t => t.Restaurant)
+            .Where(t => t.RestaurantId == id.Value && t.IsActive && t.QrToken != "")
             .OrderBy(t => t.TableNumber)
             .ThenBy(t => t.Id)
             .FirstOrDefaultAsync(cancellationToken);

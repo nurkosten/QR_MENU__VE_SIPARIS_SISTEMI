@@ -138,14 +138,15 @@
                     <a class="btn btn-ghost btn-sm" asp-area="" asp-controller="Menu" asp-action="Index"
                        asp-route-restaurantToken="@currentRestaurant.PublicToken"
                        asp-route-tableToken="@previewTable.QrToken"
-                       target="_blank" rel="noopener">
+                       asp-route-preview="1"
+                       target="customer-menu">
                         <partial name="_Icon" model='"phone"' />
                         <span class="d-none d-md-inline">Müşteri menüsü</span>
                     </a>
                 }
                 else
                 {
-                    <a class="btn btn-ghost btn-sm" asp-area="" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
+                    <a class="btn btn-ghost btn-sm" asp-area="" asp-controller="Home" asp-action="Index" target="customer-menu">
                         <partial name="_Icon" model='"phone"' />
                         <span class="d-none d-md-inline">Müşteri menüsü</span>
                     </a>
@@ -164,6 +165,30 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/datatables/dataTables.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @if (TempData["CustomerMenuPreviewReload"] as string == "1")
+    {
+        <script>
+            (function () {
+                try {
+                    var channel = new BroadcastChannel('rm-customer-preview');
+                    @if (currentRestaurant is not null && previewTable is not null)
+                    {
+                        <text>
+                    channel.postMessage({
+                        restaurantToken: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(currentRestaurant.PublicToken)),
+                        tableToken: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(previewTable.QrToken))
+                    });
+                        </text>
+                    }
+                    else
+                    {
+                        <text>channel.postMessage({ home: true });</text>
+                    }
+                    setTimeout(function () { channel.close(); }, 500);
+                } catch (e) { }
+            })();
+        </script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

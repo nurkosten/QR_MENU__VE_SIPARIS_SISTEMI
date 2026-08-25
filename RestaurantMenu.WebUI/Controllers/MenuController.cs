@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantMenu.Business.Abstract;
+using RestaurantMenu.Entities.Identity;
 using RestaurantMenu.WebUI.Infrastructure;
 using RestaurantMenu.WebUI.ViewModels;
 
@@ -10,15 +11,48 @@ namespace RestaurantMenu.WebUI.Controllers;
 public class MenuController : Controller
 {
     private readonly IMenuService _menuService;
+    private readonly ICurrentRestaurant _current;
 
-    public MenuController(IMenuService menuService)
+    public MenuController(IMenuService menuService, ICurrentRestaurant current)
     {
         _menuService = menuService;
+        _current = current;
     }
 
     [HttpGet("/menu/{restaurantToken}/{tableToken}")]
-    public async Task<IActionResult> Index(string restaurantToken, string tableToken, string? q, int? categoryId, int? tableId)
+    public async Task<IActionResult> Index(
+        string restaurantToken,
+        string tableToken,
+        string? q,
+        int? categoryId,
+        int? tableId,
+        int? preview)
     {
+        if (preview == 1 && IsStaffPreview())
+        {
+            var selected = await _current.GetPreviewTableAsync();
+            if (selected is { Restaurant.IsActive: true }
+                && (!string.Equals(selected.Restaurant.PublicToken, restaurantToken, StringComparison.Ordinal)
+                    || !string.Equals(selected.QrToken, tableToken, StringComparison.Ordinal)))
+            {
+                return RedirectToAction(nameof(Index), new
+                {
+                    restaurantToken = selected.Restaurant.PublicToken,
+                    tableToken = selected.QrToken,
+                    q,
+                    categoryId,
+                    preview = 1
+                });
+            }
+
+            if (selected is null && _current.Id is > 0)
+            {
+                return RedirectToAction(nameof(Index), "Home");
+            }
+        }
+
+        ViewBag.PreviewMode = preview == 1 && IsStaffPreview();
+
         var menu = await _menuService.GetMenuAsync(restaurantToken, tableToken, tableId);
         if (!menu.Success)
         {
@@ -53,4 +87,10 @@ public class MenuController : Controller
 
         return View(model);
     }
+
+    private bool IsStaffPreview() =>
+        User.Identity?.IsAuthenticated == true
+        && (User.IsInRole(AppRoles.Admin)
+            || User.IsInRole(AppRoles.Personel)
+            || User.IsInRole(AppRoles.Mutfak));
 }
