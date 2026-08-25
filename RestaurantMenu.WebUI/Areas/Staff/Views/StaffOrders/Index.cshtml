@@ -4,14 +4,16 @@
     ViewData["Title"] = "Personel ekranı";
     var requests = ViewBag.Requests as IReadOnlyList<ServiceRequest> ?? [];
     var todayOrderCount = (int)(ViewBag.TodayOrderCount ?? 0);
-    var todaySales = (decimal)(ViewBag.TodaySales ?? 0m);
     var readyCount = Model.Count(o => o.Status == OrderStatus.Ready);
+    var otherWork = ViewBag.OtherWork as IReadOnlyList<RestaurantWorkDto> ?? [];
+    var restaurantName = ViewData["CurrentRestaurantName"] as string;
+    var pastOrders = ViewBag.PastOrders as IReadOnlyList<Order> ?? [];
 }
 
 <div class="page-head">
     <div>
         <h1>Personel ekranı</h1>
-        <p class="page-sub"><span class="live-dot"></span> Servis ve çağrı takibi</p>
+        <p class="page-sub"><span class="live-dot"></span> @(string.IsNullOrWhiteSpace(restaurantName) ? "Servis ve çağrı takibi" : restaurantName) · servis ve çağrı takibi</p>
     </div>
     <div class="page-actions">
         <div class="refresh-meter" data-refresh="20">
@@ -21,6 +23,8 @@
     </div>
 </div>
 
+<partial name="_OtherRestaurantWork" model="otherWork" />
+
 <div class="stat-grid mb-4">
     <div class="stat">
         <div class="stat-top">
@@ -28,13 +32,6 @@
             <span class="stat-icon info"><partial name="_Icon" model='"receipt"' /></span>
         </div>
         <div class="stat-value">@todayOrderCount</div>
-    </div>
-    <div class="stat">
-        <div class="stat-top">
-            <span class="stat-label">Bugünkü ciro</span>
-            <span class="stat-icon ok"><partial name="_Icon" model='"cash"' /></span>
-        </div>
-        <div class="stat-value">@todaySales.ToString("C")</div>
     </div>
     <div class="stat">
         <div class="stat-top">
@@ -136,7 +133,7 @@
                             _ => string.Empty
                         };
                         var targets = OrderStatusMachine.GetAllowedTargets(order.Status)
-                            .Where(next => User.IsInRole(AppRoles.Admin) || OrderStatusPolicy.CanChange(new[] { AppRoles.Personel }, order.Status, next))
+                            .Where(next => OrderStatusPolicy.CanStaffChange(order.Status, next))
                             .ToList();
                         <div class="op-card @stateClass">
                             <div class="op-head">
@@ -175,3 +172,5 @@
         </div>
     </div>
 </div>
+
+<partial name="_PastOrdersTable" model="new PastOrdersTableViewModel { Orders = pastOrders, AllowComplete = true }" />

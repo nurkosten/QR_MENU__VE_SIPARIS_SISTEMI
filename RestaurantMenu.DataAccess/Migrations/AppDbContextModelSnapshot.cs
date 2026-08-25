@@ -419,6 +419,11 @@ namespace RestaurantMenu.DataAccess.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("MenuQrToken")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -441,6 +446,9 @@ namespace RestaurantMenu.DataAccess.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MenuQrToken")
+                        .IsUnique();
 
                     b.HasIndex("PublicToken")
                         .IsUnique();

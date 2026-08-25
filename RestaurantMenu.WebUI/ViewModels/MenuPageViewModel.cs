@@ -7,7 +7,11 @@ public class MenuPageViewModel
 {
     public Restaurant Restaurant { get; set; } = null!;
 
-    public RestaurantTable Table { get; set; } = null!;
+    public RestaurantTable? Table { get; set; }
+
+    public IReadOnlyList<RestaurantTable> ActiveTables { get; set; } = [];
+
+    public string MenuQrToken { get; set; } = string.Empty;
 
     public IReadOnlyList<Category> Categories { get; set; } = [];
 

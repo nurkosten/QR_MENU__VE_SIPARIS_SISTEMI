@@ -7,9 +7,18 @@
 <div class="page-head">
     <div>
         <h1>Masalar ve QR</h1>
-        <p class="page-sub">@tables.Count masa · @tables.Count(t => t.IsActive) tanesi aktif</p>
+        <p class="page-sub">@(ViewData["CurrentRestaurantName"] ?? "Seçili restoran") · @tables.Count masa · @tables.Count(t => t.IsActive) tanesi aktif · her masanın kendi QR kodu vardır</p>
     </div>
     <div class="page-actions">
+        @if (tables.Count > 0)
+        {
+            <form asp-action="RenewAllQr" method="post"
+                  onsubmit="return confirm('Her masanın QR kodu ayrı ayrı yenilenecek. Basılı eski kodlar geçersiz olacak. Devam edilsin mi?');">
+                <button type="submit" class="btn btn-outline-dark btn-sm">
+                    <partial name="_Icon" model='"refresh"' /> Tüm QR kodlarını yenile
+                </button>
+            </form>
+        }
         <a class="btn btn-primary btn-sm" asp-action="Create">
             <partial name="_Icon" model='"plus"' /> Yeni masa
         </a>
@@ -29,13 +38,13 @@
     else
     {
         <div class="table-wrap">
-            <table class="table table-stack">
+            <table class="table table-stack js-datatable">
                 <thead>
                     <tr>
                         <th class="num">No</th>
                         <th>Masa</th>
                         <th>Durum</th>
-                        <th></th>
+                        <th class="no-sort"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -62,13 +71,6 @@
                                     <a class="btn btn-outline-dark btn-sm" asp-action="Edit" asp-route-id="@table.Id">
                                         <partial name="_Icon" model='"pencil"' /> Düzenle
                                     </a>
-                                    <form asp-action="RenewQr" method="post"
-                                          onsubmit="return confirm('QR kodu yenilenecek. Basılı eski kodlar geçersiz olacak. Devam edilsin mi?');">
-                                        <input type="hidden" name="id" value="@table.Id" />
-                                        <button type="submit" class="btn btn-ghost btn-sm">
-                                            <partial name="_Icon" model='"refresh"' /> Yenile
-                                        </button>
-                                    </form>
                                 </div>
                             </td>
                         </tr>

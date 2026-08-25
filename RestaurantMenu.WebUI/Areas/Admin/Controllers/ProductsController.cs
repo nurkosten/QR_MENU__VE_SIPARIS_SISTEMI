@@ -16,16 +16,23 @@ public class ProductsController : Controller
 {
     private readonly AppDbContext _db;
     private readonly IWebHostEnvironment _env;
+    private readonly ICurrentRestaurant _current;
 
-    public ProductsController(AppDbContext db, IWebHostEnvironment env)
+    public ProductsController(AppDbContext db, IWebHostEnvironment env, ICurrentRestaurant current)
     {
         _db = db;
         _env = env;
+        _current = current;
     }
 
     public async Task<IActionResult> Index()
     {
-        var list = await _db.Products.Include(p => p.Category).OrderBy(p => p.Name).ToListAsync();
+        var restaurantId = _current.Id!.Value;
+        var list = await _db.Products
+            .Include(p => p.Category)
+            .Where(p => p.Category.RestaurantId == restaurantId)
+            .OrderBy(p => p.Name)
+            .ToListAsync();
         return View(list);
     }
 
@@ -38,6 +45,11 @@ public class ProductsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ProductFormViewModel model, IFormFile? image)
     {
+        if (!await CategoryBelongsAsync(model.CategoryId))
+        {
+            ModelState.AddModelError(nameof(model.CategoryId), "Kategori bu restorana ait değil.");
+        }
+
         if (!ModelState.IsValid)
         {
             return View(await BuildForm(model));
@@ -68,7 +80,7 @@ public class ProductsController : Controller
 
     public async Task<IActionResult> Edit(int id)
     {
-        var entity = await _db.Products.FindAsync(id);
+        var entity = await FindOwnedAsync(id);
         if (entity is null)
         {
             return NotFound();
@@ -91,12 +103,17 @@ public class ProductsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(ProductFormViewModel model, IFormFile? image)
     {
+        if (!await CategoryBelongsAsync(model.CategoryId))
+        {
+            ModelState.AddModelError(nameof(model.CategoryId), "Kategori bu restorana ait değil.");
+        }
+
         if (!ModelState.IsValid)
         {
             return View(await BuildForm(model));
         }
 
-        var entity = await _db.Products.FindAsync(model.Id);
+        var entity = await FindOwnedAsync(model.Id);
         if (entity is null)
         {
             return NotFound();
@@ -128,9 +145,23 @@ public class ProductsController : Controller
         }
     }
 
+    private Task<Product?> FindOwnedAsync(int id)
+    {
+        return _db.Products
+            .Include(p => p.Category)
+            .FirstOrDefaultAsync(p => p.Id == id && p.Category.RestaurantId == _current.Id);
+    }
+
+    private Task<bool> CategoryBelongsAsync(int categoryId)
+    {
+        return _db.Categories.AnyAsync(c => c.Id == categoryId && c.RestaurantId == _current.Id);
+    }
+
     private async Task<ProductFormViewModel> BuildForm(ProductFormViewModel model)
     {
+        var restaurantId = _current.Id!.Value;
         model.Categories = await _db.Categories
+            .Where(c => c.RestaurantId == restaurantId)
             .OrderBy(c => c.DisplayOrder)
             .Select(c => new SelectListItem(c.Name, c.Id.ToString(), c.Id == model.CategoryId))
             .ToListAsync();

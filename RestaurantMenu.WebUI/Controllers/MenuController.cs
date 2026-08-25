@@ -17,9 +17,9 @@ public class MenuController : Controller
     }
 
     [HttpGet("/menu/{restaurantToken}/{tableToken}")]
-    public async Task<IActionResult> Index(string restaurantToken, string tableToken, string? q, int? categoryId)
+    public async Task<IActionResult> Index(string restaurantToken, string tableToken, string? q, int? categoryId, int? tableId)
     {
-        var menu = await _menuService.GetMenuAsync(restaurantToken, tableToken);
+        var menu = await _menuService.GetMenuAsync(restaurantToken, tableToken, tableId);
         if (!menu.Success)
         {
             return View("InvalidQr", menu.Error);
@@ -30,13 +30,15 @@ public class MenuController : Controller
         {
             Restaurant = menu.Data!.Restaurant,
             Table = menu.Data.Table,
+            ActiveTables = menu.Data.ActiveTables,
+            MenuQrToken = tableToken,
             Categories = menu.Data.Categories,
             Search = q,
             CategoryId = categoryId,
             CartCount = cart?.Lines.Sum(x => x.Quantity) ?? 0
         };
 
-        if (!string.IsNullOrWhiteSpace(q) || categoryId is > 0)
+        if (model.Table is not null && (!string.IsNullOrWhiteSpace(q) || categoryId is > 0))
         {
             var products = await _menuService.SearchProductsAsync(menu.Data.Restaurant.Id, q, categoryId);
             foreach (var category in menu.Data.Categories)

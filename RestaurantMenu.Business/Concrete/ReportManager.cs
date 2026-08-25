@@ -15,29 +15,39 @@ public class ReportManager : IReportService
         _db = db;
     }
 
-    public async Task<DashboardStatsDto> GetDashboardAsync(CancellationToken cancellationToken = default)
+    public async Task<DashboardStatsDto> GetDashboardAsync(int restaurantId, CancellationToken cancellationToken = default)
     {
         var today = DateTime.UtcNow.Date;
         var tomorrow = today.AddDays(1);
 
-        var todayOrders = _db.Orders.Where(o => o.CreatedAt >= today && o.CreatedAt < tomorrow && o.Status != OrderStatus.Cancelled);
+        var todayOrders = _db.Orders.Where(o =>
+            o.Table.RestaurantId == restaurantId
+            && o.CreatedAt >= today
+            && o.CreatedAt < tomorrow
+            && o.Status != OrderStatus.Cancelled);
 
         return new DashboardStatsDto
         {
             TodayOrderCount = await todayOrders.CountAsync(cancellationToken),
             TodaySales = await todayOrders.SumAsync(o => (decimal?)o.TotalAmount, cancellationToken) ?? 0,
             OpenOrderCount = await _db.Orders.CountAsync(
-                o => o.Status != OrderStatus.Completed && o.Status != OrderStatus.Cancelled,
+                o => o.Table.RestaurantId == restaurantId
+                    && o.Status != OrderStatus.Completed
+                    && o.Status != OrderStatus.Cancelled,
                 cancellationToken),
             PendingServiceRequestCount = await _db.ServiceRequests.CountAsync(
-                r => r.Status == ServiceRequestStatus.Pending,
+                r => r.Table.RestaurantId == restaurantId && r.Status == ServiceRequestStatus.Pending,
                 cancellationToken),
-            ActiveTableCount = await _db.RestaurantTables.CountAsync(t => t.IsActive, cancellationToken),
-            AvailableProductCount = await _db.Products.CountAsync(p => p.IsActive && p.IsAvailable, cancellationToken)
+            ActiveTableCount = await _db.RestaurantTables.CountAsync(
+                t => t.RestaurantId == restaurantId && t.IsActive,
+                cancellationToken),
+            AvailableProductCount = await _db.Products.CountAsync(
+                p => p.Category.RestaurantId == restaurantId && p.IsActive && p.IsAvailable,
+                cancellationToken)
         };
     }
 
-    public async Task<SalesReportDto> GetSalesAsync(DateTime from, DateTime to, CancellationToken cancellationToken = default)
+    public async Task<SalesReportDto> GetSalesAsync(int restaurantId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
     {
         if (to < from)
         {
@@ -49,7 +59,11 @@ public class ReportManager : IReportService
             to = from.AddDays(366);
         }
 
-        var orders = _db.Orders.Where(o => o.CreatedAt >= from && o.CreatedAt <= to && o.Status != OrderStatus.Cancelled);
+        var orders = _db.Orders.Where(o =>
+            o.Table.RestaurantId == restaurantId
+            && o.CreatedAt >= from
+            && o.CreatedAt <= to
+            && o.Status != OrderStatus.Cancelled);
 
         var top = await _db.OrderItems
             .Where(i => orders.Any(o => o.Id == i.OrderId))

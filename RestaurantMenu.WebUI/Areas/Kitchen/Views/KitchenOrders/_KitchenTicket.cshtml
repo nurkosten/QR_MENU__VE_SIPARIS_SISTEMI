@@ -3,7 +3,7 @@
 @{
     var createdUtc = DateTime.SpecifyKind(Model.CreatedAt, DateTimeKind.Utc).ToString("o");
     var targets = OrderStatusMachine.GetAllowedTargets(Model.Status)
-        .Where(next => User.IsInRole(AppRoles.Admin) || OrderStatusPolicy.CanChange(new[] { AppRoles.Mutfak }, Model.Status, next))
+        .Where(next => OrderStatusPolicy.CanKitchenChange(Model.Status, next))
         .ToList();
 }
 <article class="kds-ticket">
@@ -48,5 +48,9 @@
                 </form>
             }
         </div>
+    }
+    else if (Model.Status == OrderStatus.Ready)
+    {
+        <div class="kds-order-note">Servis ve tamamlandı garson panelinden güncellenir.</div>
     }
 </article>

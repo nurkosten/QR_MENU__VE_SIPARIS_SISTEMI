@@ -1,0 +1,76 @@
+@model PastOrdersTableViewModel
+@{
+    var orders = Model.Orders.ToList();
+}
+
+<div class="panel history-panel">
+    <div class="panel-head">
+        <h2 class="panel-title">Geçmiş siparişler</h2>
+        <span class="chip">@orders.Count kayıt</span>
+    </div>
+    @if (orders.Count == 0)
+    {
+        <div class="empty">
+            <div class="empty-icon"><partial name="_Icon" model='"receipt"' /></div>
+            <div class="empty-title">Henüz geçmiş sipariş yok</div>
+            <p class="empty-text">Servis edilen ve tamamlanan siparişler burada listelenir.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="table table-stack js-datatable">
+                <thead>
+                    <tr>
+                        <th>Sipariş</th>
+                        <th>Masa</th>
+                        <th>Ürünler</th>
+                        <th>Durum</th>
+                        <th>Saat</th>
+                        <th class="num">Tutar</th>
+                        @if (Model.AllowComplete)
+                        {
+                            <th class="no-sort"></th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in orders)
+                    {
+                        <tr>
+                            <td class="cell-main">
+                                <span class="cell-title d-block">@order.OrderNumber</span>
+                            </td>
+                            <td data-label="Masa">@order.Table.Name</td>
+                            <td data-label="Ürünler">
+                                <span class="cell-sub">@string.Join(" · ", order.Items.Select(i => $"{i.Quantity}× {i.ProductNameSnapshot}"))</span>
+                            </td>
+                            <td data-label="Durum">
+                                <span class="badge bg-@DisplayTexts.StatusBadge(order.Status)">@DisplayTexts.OrderStatus(order.Status)</span>
+                            </td>
+                            <td data-label="Saat">
+                                <span class="cell-sub">@((order.UpdatedAt ?? order.CreatedAt).ToLocalTime().ToString("dd.MM HH:mm"))</span>
+                            </td>
+                            <td class="num money" data-label="Tutar">@order.TotalAmount.ToString("C")</td>
+                            @if (Model.AllowComplete)
+                            {
+                                <td>
+                                    @if (order.Status == OrderStatus.Served)
+                                    {
+                                        <div class="row-actions">
+                                            <form asp-area="Staff" asp-controller="StaffOrders" asp-action="ChangeStatus" method="post">
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <input type="hidden" name="nextStatus" value="@OrderStatus.Completed" />
+                                                <button type="submit" class="btn btn-outline-dark btn-sm">Tamamlandı</button>
+                                            </form>
+                                        </div>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

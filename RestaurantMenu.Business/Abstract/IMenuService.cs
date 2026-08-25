@@ -6,11 +6,16 @@ namespace RestaurantMenu.Business.Abstract;
 
 public interface IMenuService
 {
-    Task<ServiceResult<MenuContextDto>> GetMenuAsync(string restaurantToken, string tableToken, CancellationToken cancellationToken = default);
+    Task<ServiceResult<MenuContextDto>> GetMenuAsync(
+        string restaurantToken,
+        string tableToken,
+        int? tableId = null,
+        CancellationToken cancellationToken = default);
 
     Task<ServiceResult<(Restaurant Restaurant, RestaurantTable Table)>> ResolveTableAsync(
         string restaurantToken,
         string tableToken,
+        int? tableId = null,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<Product>> SearchProductsAsync(

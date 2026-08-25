@@ -13,15 +13,20 @@ namespace RestaurantMenu.WebUI.Areas.Kitchen.Controllers;
 public class KitchenOrdersController : Controller
 {
     private readonly IOrderService _orders;
+    private readonly ICurrentRestaurant _current;
 
-    public KitchenOrdersController(IOrderService orders)
+    public KitchenOrdersController(IOrderService orders, ICurrentRestaurant current)
     {
         _orders = orders;
+        _current = current;
     }
 
     public async Task<IActionResult> Index()
     {
-        return View(await _orders.GetKitchenOrdersAsync());
+        var restaurantId = _current.Id!.Value;
+        ViewBag.OtherWork = await _orders.GetKitchenWorkElsewhereAsync(restaurantId);
+        ViewBag.PastOrders = await _orders.GetPastOrdersAsync(restaurantId);
+        return View(await _orders.GetKitchenOrdersAsync(restaurantId));
     }
 
     [HttpPost]
@@ -29,15 +34,15 @@ public class KitchenOrdersController : Controller
     public async Task<IActionResult> ChangeStatus(int id, OrderStatus nextStatus)
     {
         var order = await _orders.GetByIdAsync(id);
-        if (order is null)
+        if (order is null || order.Table.RestaurantId != _current.Id)
         {
             return NotFound();
         }
 
-        var roles = OrderStatusPolicy.ResolveRoles(User);
-        if (!OrderStatusPolicy.CanChange(roles, order.Status, nextStatus) || !OrderStatusMachine.CanTransition(order.Status, nextStatus))
+        if (!OrderStatusPolicy.CanKitchenChange(order.Status, nextStatus)
+            || !OrderStatusMachine.CanTransition(order.Status, nextStatus))
         {
-            TempData["Error"] = "Bu durum geçişine izin verilmiyor.";
+            TempData["Error"] = "Mutfak yalnızca hazırlığı güncelleyebilir. Servis ve tamamlandı garson panelinden yapılır.";
             return RedirectToAction(nameof(Index));
         }
 

@@ -15,7 +15,7 @@
 <div class="page-head">
     <div>
         <h1>Satış raporları</h1>
-        <p class="page-sub">@rangeLabel için özet</p>
+        <p class="page-sub">@(ViewData["CurrentRestaurantName"] ?? "Seçili restoran") · @rangeLabel için özet</p>
     </div>
     <div class="page-actions">
         <div class="seg">
@@ -69,7 +69,7 @@
     else
     {
         <div class="table-wrap">
-            <table class="table table-stack">
+            <table class="table table-stack js-datatable">
                 <thead>
                     <tr>
                         <th>Ürün</th>

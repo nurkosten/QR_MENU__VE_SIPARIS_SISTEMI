@@ -17,27 +17,32 @@ public class StaffOrdersController : Controller
     private readonly IServiceRequestService _requests;
     private readonly IReportService _reports;
     private readonly UserManager<ApplicationUser> _users;
+    private readonly ICurrentRestaurant _current;
 
     public StaffOrdersController(
         IOrderService orders,
         IServiceRequestService requests,
         IReportService reports,
-        UserManager<ApplicationUser> users)
+        UserManager<ApplicationUser> users,
+        ICurrentRestaurant current)
     {
         _orders = orders;
         _requests = requests;
         _reports = reports;
         _users = users;
+        _current = current;
     }
 
     public async Task<IActionResult> Index()
     {
-        var openRequests = await _requests.GetOpenAsync();
+        var restaurantId = _current.Id!.Value;
+        var openRequests = await _requests.GetOpenAsync(restaurantId);
         ViewBag.Requests = openRequests;
-        var stats = await _reports.GetDashboardAsync();
+        var stats = await _reports.GetDashboardAsync(restaurantId);
         ViewBag.TodayOrderCount = stats.TodayOrderCount;
-        ViewBag.TodaySales = stats.TodaySales;
-        return View(await _orders.GetStaffOrdersAsync());
+        ViewBag.OtherWork = await _orders.GetStaffWorkElsewhereAsync(restaurantId);
+        ViewBag.PastOrders = await _orders.GetPastOrdersAsync(restaurantId);
+        return View(await _orders.GetStaffOrdersAsync(restaurantId));
     }
 
     [HttpPost]
@@ -45,13 +50,13 @@ public class StaffOrdersController : Controller
     public async Task<IActionResult> ChangeStatus(int id, OrderStatus nextStatus)
     {
         var order = await _orders.GetByIdAsync(id);
-        if (order is null)
+        if (order is null || order.Table.RestaurantId != _current.Id)
         {
             return NotFound();
         }
 
-        var roles = OrderStatusPolicy.ResolveRoles(User);
-        if (!OrderStatusPolicy.CanChange(roles, order.Status, nextStatus) || !OrderStatusMachine.CanTransition(order.Status, nextStatus))
+        if (!OrderStatusPolicy.CanStaffChange(order.Status, nextStatus)
+            || !OrderStatusMachine.CanTransition(order.Status, nextStatus))
         {
             TempData["Error"] = "Bu durum geçişine izin verilmiyor.";
             return RedirectToAction(nameof(Index));
@@ -67,7 +72,7 @@ public class StaffOrdersController : Controller
     public async Task<IActionResult> HandleRequest(int id, ServiceRequestStatus status)
     {
         var user = await _users.GetUserAsync(User);
-        var result = await _requests.ChangeStatusAsync(id, status, user!.Id);
+        var result = await _requests.ChangeStatusAsync(id, status, user!.Id, _current.Id!.Value);
         TempData[result.Success ? "Success" : "Error"] = result.Success ? "Talep güncellendi." : result.Error;
         return RedirectToAction(nameof(Index));
     }

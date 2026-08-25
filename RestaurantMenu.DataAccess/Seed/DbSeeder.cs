@@ -40,6 +40,7 @@ public static class DbSeeder
             Description = "QR kod ile masadan sipariş verebileceğiniz demo restoran.",
             WorkingHours = "11:00 - 23:00",
             PublicToken = "nur-burger",
+            MenuQrToken = Guid.NewGuid().ToString("N"),
             IsActive = true
         };
 

@@ -1,12 +1,14 @@
-﻿@functions {
-    string NavState(string area, string controller)
+﻿@inject ICurrentRestaurant CurrentRestaurant
+@functions {
+    string NavState(string area, string controller, string? action = null)
     {
         var currentArea = ViewContext.RouteData.Values["area"]?.ToString() ?? string.Empty;
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
-        return string.Equals(currentArea, area, StringComparison.OrdinalIgnoreCase)
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+        var match = string.Equals(currentArea, area, StringComparison.OrdinalIgnoreCase)
             && string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
-            ? "nav-link-item active"
-            : "nav-link-item";
+            && (action is null || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase));
+        return match ? "nav-link-item active" : "nav-link-item";
     }
 }
 @{
@@ -17,6 +19,9 @@
     var roleLabel = User.IsInRole(AppRoles.Admin) ? "Yönetici"
         : User.IsInRole(AppRoles.Personel) ? "Personel"
         : User.IsInRole(AppRoles.Mutfak) ? "Mutfak" : "Kullanıcı";
+    await CurrentRestaurant.EnsureAsync();
+    var currentRestaurant = await CurrentRestaurant.GetAsync();
+    var previewTable = await CurrentRestaurant.GetPreviewTableAsync();
 }
 <!DOCTYPE html>
 <html lang="tr">
@@ -31,7 +36,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
+<body class="app-ui">
     <div class="app-shell">
         <div class="sidebar-backdrop"></div>
         <aside class="app-sidebar">
@@ -42,6 +47,7 @@
                     <span class="brand-sub">Yönetim paneli</span>
                 </span>
             </div>
+            @await Component.InvokeAsync("RestaurantSwitcher")
 
             <nav class="nav-scroll">
                 @if (User.IsInRole(AppRoles.Admin))
@@ -72,7 +78,10 @@
                         <a class="@NavState("Admin", "Orders")" asp-area="Admin" asp-controller="Orders" asp-action="Index">
                             <partial name="_Icon" model='"receipt"' /> Siparişler
                         </a>
-                        <a class="@NavState("Admin", "Restaurant")" asp-area="Admin" asp-controller="Restaurant" asp-action="Edit">
+                        <a class="@NavState("Admin", "Restaurant", "Index")" asp-area="Admin" asp-controller="Restaurant" asp-action="Index">
+                            <partial name="_Icon" model='"store"' /> Restoranlar
+                        </a>
+                        <a class="@NavState("Admin", "Restaurant", "Edit")" asp-area="Admin" asp-controller="Restaurant" asp-action="Edit">
                             <partial name="_Icon" model='"store"' /> İşletme bilgileri
                         </a>
                         <a class="@NavState("Admin", "Users")" asp-area="Admin" asp-controller="Users" asp-action="Index">
@@ -124,10 +133,23 @@
                 </button>
                 <span class="topbar-title">@ViewData["Title"]</span>
                 <div class="topbar-spacer"></div>
-                <a class="btn btn-ghost btn-sm" asp-area="" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
-                    <partial name="_Icon" model='"phone"' />
-                    <span class="d-none d-md-inline">Müşteri menüsü</span>
-                </a>
+                @if (currentRestaurant is not null && previewTable is not null)
+                {
+                    <a class="btn btn-ghost btn-sm" asp-area="" asp-controller="Menu" asp-action="Index"
+                       asp-route-restaurantToken="@currentRestaurant.PublicToken"
+                       asp-route-tableToken="@previewTable.QrToken"
+                       target="_blank" rel="noopener">
+                        <partial name="_Icon" model='"phone"' />
+                        <span class="d-none d-md-inline">Müşteri menüsü</span>
+                    </a>
+                }
+                else
+                {
+                    <a class="btn btn-ghost btn-sm" asp-area="" asp-controller="Home" asp-action="Index" target="_blank" rel="noopener">
+                        <partial name="_Icon" model='"phone"' />
+                        <span class="d-none d-md-inline">Müşteri menüsü</span>
+                    </a>
+                }
             </header>
 
             <main class="app-content">
@@ -140,6 +162,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/datatables/dataTables.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

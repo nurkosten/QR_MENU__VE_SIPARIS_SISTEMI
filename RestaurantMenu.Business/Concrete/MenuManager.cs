@@ -19,51 +19,28 @@ public class MenuManager : IMenuService
     public async Task<ServiceResult<(Restaurant Restaurant, RestaurantTable Table)>> ResolveTableAsync(
         string restaurantToken,
         string tableToken,
+        int? tableId = null,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(restaurantToken) || string.IsNullOrWhiteSpace(tableToken))
-        {
-            return ServiceResult<(Restaurant, RestaurantTable)>.Fail("Geçersiz QR kodu.");
-        }
-
-        var table = await _db.RestaurantTables
-            .Include(t => t.Restaurant)
-            .FirstOrDefaultAsync(t => t.QrToken == tableToken, cancellationToken);
-
-        if (table is null)
-        {
-            return ServiceResult<(Restaurant, RestaurantTable)>.Fail("QR kodu bulunamadı.");
-        }
-
-        if (!table.IsActive)
-        {
-            return ServiceResult<(Restaurant, RestaurantTable)>.Fail("Bu masa şu anda aktif değil.");
-        }
-
-        if (!table.Restaurant.IsActive ||
-            !string.Equals(table.Restaurant.PublicToken, restaurantToken, StringComparison.OrdinalIgnoreCase))
-        {
-            return ServiceResult<(Restaurant, RestaurantTable)>.Fail("QR kodu bu işletme ile eşleşmiyor.");
-        }
-
-        return ServiceResult<(Restaurant, RestaurantTable)>.Ok((table.Restaurant, table));
+        return await ResolveTableQrAsync(restaurantToken, tableToken, tableId, cancellationToken);
     }
 
     public async Task<ServiceResult<MenuContextDto>> GetMenuAsync(
         string restaurantToken,
         string tableToken,
+        int? tableId = null,
         CancellationToken cancellationToken = default)
     {
-        var resolved = await ResolveTableAsync(restaurantToken, tableToken, cancellationToken);
+        var resolved = await ResolveTableQrAsync(restaurantToken, tableToken, tableId, cancellationToken);
         if (!resolved.Success)
         {
             return ServiceResult<MenuContextDto>.Fail(resolved.Error!);
         }
 
-        var restaurantId = resolved.Data!.Restaurant.Id;
-
+        var restaurant = resolved.Data!.Restaurant;
+        var table = resolved.Data.Table;
         var categories = await _db.Categories
-            .Where(c => c.RestaurantId == restaurantId && c.IsActive)
+            .Where(c => c.RestaurantId == restaurant.Id && c.IsActive)
             .Include(c => c.Products.Where(p => p.IsActive && p.IsAvailable))
             .OrderBy(c => c.DisplayOrder)
             .ThenBy(c => c.Name)
@@ -72,8 +49,9 @@ public class MenuManager : IMenuService
 
         return ServiceResult<MenuContextDto>.Ok(new MenuContextDto
         {
-            Restaurant = resolved.Data.Restaurant,
-            Table = resolved.Data.Table,
+            Restaurant = restaurant,
+            Table = table,
+            ActiveTables = [table],
             Categories = categories
         });
     }
@@ -103,5 +81,46 @@ public class MenuManager : IMenuService
             .OrderBy(p => p.Category.DisplayOrder)
             .ThenBy(p => p.Name)
             .ToListAsync(cancellationToken);
+    }
+
+    private async Task<ServiceResult<(Restaurant Restaurant, RestaurantTable Table)>> ResolveTableQrAsync(
+        string restaurantToken,
+        string tableToken,
+        int? tableId,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(restaurantToken) || string.IsNullOrWhiteSpace(tableToken))
+        {
+            return ServiceResult<(Restaurant, RestaurantTable)>.Fail("Geçersiz QR kodu.");
+        }
+
+        var table = await _db.RestaurantTables
+            .AsNoTracking()
+            .Include(t => t.Restaurant)
+            .FirstOrDefaultAsync(
+                t => t.QrToken == tableToken && t.Restaurant.PublicToken == restaurantToken,
+                cancellationToken);
+
+        if (table is null)
+        {
+            return ServiceResult<(Restaurant, RestaurantTable)>.Fail("QR kodu bulunamadı.");
+        }
+
+        if (!table.Restaurant.IsActive)
+        {
+            return ServiceResult<(Restaurant, RestaurantTable)>.Fail("QR kodu bu işletme ile eşleşmiyor.");
+        }
+
+        if (!table.IsActive)
+        {
+            return ServiceResult<(Restaurant, RestaurantTable)>.Fail("Bu masa şu anda aktif değil.");
+        }
+
+        if (tableId is > 0 && table.Id != tableId)
+        {
+            return ServiceResult<(Restaurant, RestaurantTable)>.Fail("QR kodu bu masaya ait değil.");
+        }
+
+        return ServiceResult<(Restaurant, RestaurantTable)>.Ok((table.Restaurant, table));
     }
 }

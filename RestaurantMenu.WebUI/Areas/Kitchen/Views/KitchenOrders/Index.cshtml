@@ -1,15 +1,18 @@
 @model IReadOnlyList<Order>
 @{
     ViewData["Title"] = "Mutfak ekranı";
-    var incoming = Model.Where(o => o.Status is OrderStatus.New or OrderStatus.Confirmed).ToList();
+    var incoming = Model.Where(o => o.Status == OrderStatus.Confirmed).ToList();
     var preparing = Model.Where(o => o.Status == OrderStatus.Preparing).ToList();
     var ready = Model.Where(o => o.Status == OrderStatus.Ready).ToList();
+    var otherWork = ViewBag.OtherWork as IReadOnlyList<RestaurantWorkDto> ?? [];
+    var restaurantName = ViewData["CurrentRestaurantName"] as string;
+    var pastOrders = ViewBag.PastOrders as IReadOnlyList<Order> ?? [];
 }
 
 <div class="kds-bar">
     <div>
         <h1>Mutfak ekranı</h1>
-        <p class="page-sub"><span class="live-dot"></span> Canlı hazırlık kuyruğu · @Model.Count açık sipariş</p>
+        <p class="page-sub"><span class="live-dot"></span> @(string.IsNullOrWhiteSpace(restaurantName) ? "Canlı hazırlık kuyruğu" : restaurantName) · @Model.Count açık sipariş</p>
     </div>
     <div class="refresh-meter" data-refresh="10">
         <span class="bar"><span></span></span>
@@ -17,15 +20,17 @@
     </div>
 </div>
 
+<partial name="_OtherRestaurantWork" model="otherWork" />
+
 <div class="kds">
     <section class="kds-col new">
         <div class="kds-col-head">
-            <span class="kds-col-title">Yeni</span>
+            <span class="kds-col-title">Onaylandı</span>
             <span class="kds-count">@incoming.Count</span>
         </div>
         @if (incoming.Count == 0)
         {
-            <div class="kds-empty">Bekleyen yeni sipariş yok</div>
+            <div class="kds-empty">Garson onayı beklenen sipariş yok</div>
         }
         @foreach (var order in incoming)
         {
@@ -63,3 +68,5 @@
         }
     </section>
 </div>
+
+<partial name="_PastOrdersTable" model="new PastOrdersTableViewModel { Orders = pastOrders, AllowComplete = false }" />

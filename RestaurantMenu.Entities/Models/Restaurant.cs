@@ -18,6 +18,8 @@ public class Restaurant : BaseEntity
 
     public string PublicToken { get; set; } = string.Empty;
 
+    public string MenuQrToken { get; set; } = string.Empty;
+
     public ICollection<RestaurantTable> Tables { get; set; } = new List<RestaurantTable>();
 
     public ICollection<Category> Categories { get; set; } = new List<Category>();

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantMenu.Business.Abstract;
 using RestaurantMenu.Entities.Identity;
+using RestaurantMenu.WebUI.Infrastructure;
 
 namespace RestaurantMenu.WebUI.Areas.Admin.Controllers;
 
@@ -10,10 +11,12 @@ namespace RestaurantMenu.WebUI.Areas.Admin.Controllers;
 public class ReportsController : Controller
 {
     private readonly IReportService _reports;
+    private readonly ICurrentRestaurant _current;
 
-    public ReportsController(IReportService reports)
+    public ReportsController(IReportService reports, ICurrentRestaurant current)
     {
         _reports = reports;
+        _current = current;
     }
 
     public async Task<IActionResult> Index(string range = "daily")
@@ -27,6 +30,6 @@ public class ReportsController : Controller
         };
 
         ViewBag.Range = range;
-        return View(await _reports.GetSalesAsync(from, to));
+        return View(await _reports.GetSalesAsync(_current.Id!.Value, from, to));
     }
 }

@@ -11,9 +11,11 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
+<body class="auth-ui">
     <div class="auth-shell">
         <aside class="auth-aside">
+            <span class="hero-orb hero-orb-a" aria-hidden="true"></span>
+            <span class="hero-orb hero-orb-b" aria-hidden="true"></span>
             <div class="brand">
                 <span class="brand-mark"><partial name="_Icon" model='"dish"' /></span>
                 <span>
@@ -21,7 +23,7 @@
                     <span class="brand-sub">Sipariş yönetim sistemi</span>
                 </span>
             </div>
-            <div>
+            <div class="auth-copy">
                 <h2>Masadan mutfağa tek akış.</h2>
                 <p>QR ile alınan siparişler anında mutfak ekranına düşer, personel servis ve çağrıları aynı panelden yönetir.</p>
                 <ul class="auth-points">
@@ -31,7 +33,7 @@
                     <li><partial name="_Icon" model='"check-circle"' /> Günlük, haftalık ve aylık satış raporları</li>
                 </ul>
             </div>
-            <span class="brand-sub" style="position:relative;">&copy; @DateTime.Now.Year · Tüm hakları saklıdır</span>
+            <span class="auth-foot">&copy; @DateTime.Now.Year · Tüm hakları saklıdır</span>
         </aside>
 
         <main class="auth-main">

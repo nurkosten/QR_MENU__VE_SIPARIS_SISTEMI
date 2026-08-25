@@ -15,35 +15,36 @@ public class CustomerOrdersController : Controller
         _menuService = menuService;
     }
 
-    public async Task<IActionResult> Status(string number, string restaurantToken, string tableToken)
+    public async Task<IActionResult> Status(string number, string restaurantToken, string tableToken, int? tableId)
     {
-        var resolved = await _menuService.ResolveTableAsync(restaurantToken, tableToken);
-        if (!resolved.Success)
-        {
-            return View("~/Views/Menu/InvalidQr.cshtml", resolved.Error);
-        }
-
         var order = await _orderService.GetByNumberAsync(number);
-        if (order is null || order.TableId != resolved.Data!.Table.Id)
+        if (order is null)
         {
             return NotFound();
+        }
+
+        var resolved = await _menuService.ResolveTableAsync(restaurantToken, tableToken, tableId ?? order.TableId);
+        if (!resolved.Success || order.TableId != resolved.Data!.Table.Id)
+        {
+            return View("~/Views/Menu/InvalidQr.cshtml", resolved.Success ? "Sipariş bu masa ile eşleşmiyor." : resolved.Error);
         }
 
         ViewBag.RestaurantToken = restaurantToken;
         ViewBag.TableToken = tableToken;
+        ViewBag.TableId = order.TableId;
         return View(order);
     }
 
-    public async Task<IActionResult> StatusJson(string number, string restaurantToken, string tableToken)
+    public async Task<IActionResult> StatusJson(string number, string restaurantToken, string tableToken, int? tableId)
     {
-        var resolved = await _menuService.ResolveTableAsync(restaurantToken, tableToken);
-        if (!resolved.Success)
+        var order = await _orderService.GetByNumberAsync(number);
+        if (order is null)
         {
             return NotFound();
         }
 
-        var order = await _orderService.GetByNumberAsync(number);
-        if (order is null || order.TableId != resolved.Data!.Table.Id)
+        var resolved = await _menuService.ResolveTableAsync(restaurantToken, tableToken, tableId ?? order.TableId);
+        if (!resolved.Success || order.TableId != resolved.Data!.Table.Id)
         {
             return NotFound();
         }

@@ -35,6 +35,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(x => x.WorkingHours).HasMaxLength(200);
             entity.Property(x => x.PublicToken).IsRequired().HasMaxLength(64);
             entity.HasIndex(x => x.PublicToken).IsUnique();
+            entity.Property(x => x.MenuQrToken).IsRequired().HasMaxLength(64);
+            entity.HasIndex(x => x.MenuQrToken).IsUnique();
         });
 
         modelBuilder.Entity<RestaurantTable>(entity =>

@@ -33,15 +33,18 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.ExpireTimeSpan = TimeSpan.FromDays(14);
     options.SlidingExpiration = true;
 });
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IMenuService, MenuManager>();
 builder.Services.AddScoped<IOrderService, OrderManager>();
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestManager>();
 builder.Services.AddScoped<IReportService, ReportManager>();
 builder.Services.AddScoped<IQrCodeService, QrCodeManager>();
+builder.Services.AddScoped<RestaurantMenu.WebUI.Infrastructure.ICurrentRestaurant, RestaurantMenu.WebUI.Infrastructure.CurrentRestaurant>();
+builder.Services.AddScoped<RestaurantMenu.WebUI.Infrastructure.CurrentRestaurantFilter>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -53,7 +56,10 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.AddService<RestaurantMenu.WebUI.Infrastructure.CurrentRestaurantFilter>();
+});
 
 var app = builder.Build();
 

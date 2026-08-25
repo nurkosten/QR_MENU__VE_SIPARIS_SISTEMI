@@ -122,9 +122,10 @@ public class OrderManager : IOrderService
         string tableToken,
         IReadOnlyList<CartLineInput> lines,
         string? customerNote,
+        int? tableId = null,
         CancellationToken cancellationToken = default)
     {
-        var tableResult = await _menuService.ResolveTableAsync(restaurantToken, tableToken, cancellationToken);
+        var tableResult = await _menuService.ResolveTableAsync(restaurantToken, tableToken, tableId, cancellationToken);
         if (!tableResult.Success)
         {
             return ServiceResult<Order>.Fail(tableResult.Error!);
@@ -176,30 +177,46 @@ public class OrderManager : IOrderService
             .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<Order>> GetStaffOrdersAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Order>> GetStaffOrdersAsync(int restaurantId, CancellationToken cancellationToken = default)
     {
         return await _db.Orders
             .Include(o => o.Table)
             .Include(o => o.Items)
-            .Where(o => o.Status != OrderStatus.Completed && o.Status != OrderStatus.Cancelled)
+            .Where(o => o.Table.RestaurantId == restaurantId
+                && o.Status != OrderStatus.Served
+                && o.Status != OrderStatus.Completed
+                && o.Status != OrderStatus.Cancelled)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<Order>> GetKitchenOrdersAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Order>> GetKitchenOrdersAsync(int restaurantId, CancellationToken cancellationToken = default)
     {
         return await _db.Orders
             .Include(o => o.Table)
             .Include(o => o.Items)
-            .Where(o => o.Status == OrderStatus.New
-                || o.Status == OrderStatus.Confirmed
-                || o.Status == OrderStatus.Preparing
-                || o.Status == OrderStatus.Ready)
+            .Where(o => o.Table.RestaurantId == restaurantId
+                && (o.Status == OrderStatus.Confirmed
+                    || o.Status == OrderStatus.Preparing
+                    || o.Status == OrderStatus.Ready))
             .OrderBy(o => o.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Order>> GetPastOrdersAsync(int restaurantId, CancellationToken cancellationToken = default)
+    {
+        return await _db.Orders
+            .Include(o => o.Table)
+            .Include(o => o.Items)
+            .Where(o => o.Table.RestaurantId == restaurantId
+                && (o.Status == OrderStatus.Served || o.Status == OrderStatus.Completed))
+            .OrderByDescending(o => o.UpdatedAt ?? o.CreatedAt)
+            .Take(100)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Order>> GetAdminOrdersAsync(
+        int restaurantId,
         OrderStatus? status,
         DateTime? from,
         DateTime? to,
@@ -208,7 +225,7 @@ public class OrderManager : IOrderService
         var query = _db.Orders
             .Include(o => o.Table)
             .Include(o => o.Items)
-            .AsQueryable();
+            .Where(o => o.Table.RestaurantId == restaurantId);
 
         if (status.HasValue)
         {
@@ -228,6 +245,45 @@ public class OrderManager : IOrderService
         return await query
             .OrderByDescending(o => o.CreatedAt)
             .Take(200)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<IReadOnlyList<RestaurantWorkDto>> GetStaffWorkElsewhereAsync(int restaurantId, CancellationToken cancellationToken = default)
+    {
+        return GetWorkElsewhereAsync(
+            restaurantId,
+            o => o.Status != OrderStatus.Served
+                && o.Status != OrderStatus.Completed
+                && o.Status != OrderStatus.Cancelled,
+            cancellationToken);
+    }
+
+    public Task<IReadOnlyList<RestaurantWorkDto>> GetKitchenWorkElsewhereAsync(int restaurantId, CancellationToken cancellationToken = default)
+    {
+        return GetWorkElsewhereAsync(
+            restaurantId,
+            o => o.Status == OrderStatus.Confirmed
+                || o.Status == OrderStatus.Preparing
+                || o.Status == OrderStatus.Ready,
+            cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<RestaurantWorkDto>> GetWorkElsewhereAsync(
+        int restaurantId,
+        System.Linq.Expressions.Expression<Func<Order, bool>> statusFilter,
+        CancellationToken cancellationToken)
+    {
+        return await _db.Orders
+            .Where(o => o.Table.RestaurantId != restaurantId)
+            .Where(statusFilter)
+            .GroupBy(o => new { o.Table.RestaurantId, o.Table.Restaurant.Name })
+            .Select(g => new RestaurantWorkDto
+            {
+                RestaurantId = g.Key.RestaurantId,
+                RestaurantName = g.Key.Name,
+                Count = g.Count()
+            })
+            .OrderByDescending(x => x.Count)
             .ToListAsync(cancellationToken);
     }
 

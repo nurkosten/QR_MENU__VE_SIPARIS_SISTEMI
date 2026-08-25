@@ -8,7 +8,7 @@
     var steps = new[]
     {
         new { Status = OrderStatus.New, Label = "Sipariş alındı", Hint = "Siparişiniz sisteme iletildi" },
-        new { Status = OrderStatus.Confirmed, Label = "Onaylandı", Hint = "Mutfak siparişi onayladı" },
+        new { Status = OrderStatus.Confirmed, Label = "Onaylandı", Hint = "Garson siparişi onayladı" },
         new { Status = OrderStatus.Preparing, Label = "Hazırlanıyor", Hint = "Ürünleriniz hazırlanıyor" },
         new { Status = OrderStatus.Ready, Label = "Hazır", Hint = "Servis için hazır" },
         new { Status = OrderStatus.Served, Label = "Servis edildi", Hint = "Afiyet olsun" }
@@ -28,7 +28,7 @@
     </div>
     <div class="page-actions">
         <a class="btn btn-outline-dark btn-sm" asp-controller="Menu" asp-action="Index"
-           asp-route-restaurantToken="@restaurantToken" asp-route-tableToken="@tableToken">
+           asp-route-restaurantToken="@restaurantToken" asp-route-tableToken="@tableToken" asp-route-tableId="@ViewBag.TableId">
             <partial name="_Icon" model='"arrow-left"' /> Menüye dön
         </a>
     </div>
@@ -109,7 +109,7 @@
 @section Scripts {
     <script>
         (function () {
-            var url = '@Url.Action("StatusJson", "CustomerOrders", new { number = Model.OrderNumber, restaurantToken, tableToken })';
+            var url = '@Url.Action("StatusJson", "CustomerOrders", new { number = Model.OrderNumber, restaurantToken, tableToken, tableId = ViewBag.TableId })';
             var badge = document.querySelector('[data-status-badge]');
             var tracker = document.querySelector('[data-tracker]');
             var order = ['New', 'Confirmed', 'Preparing', 'Ready', 'Served'];

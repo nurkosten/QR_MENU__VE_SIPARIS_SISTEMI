@@ -49,11 +49,11 @@ public class ServiceRequestManager : IServiceRequestService
         return ServiceResult<ServiceRequest>.Ok(request);
     }
 
-    public async Task<IReadOnlyList<ServiceRequest>> GetOpenAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ServiceRequest>> GetOpenAsync(int restaurantId, CancellationToken cancellationToken = default)
     {
         return await _db.ServiceRequests
             .Include(r => r.Table)
-            .Where(r => r.Status != ServiceRequestStatus.Completed)
+            .Where(r => r.Table.RestaurantId == restaurantId && r.Status != ServiceRequestStatus.Completed)
             .OrderBy(r => r.CreatedAt)
             .ToListAsync(cancellationToken);
     }
@@ -62,9 +62,12 @@ public class ServiceRequestManager : IServiceRequestService
         int id,
         ServiceRequestStatus status,
         string userId,
+        int restaurantId,
         CancellationToken cancellationToken = default)
     {
-        var request = await _db.ServiceRequests.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+        var request = await _db.ServiceRequests
+            .Include(r => r.Table)
+            .FirstOrDefaultAsync(r => r.Id == id && r.Table.RestaurantId == restaurantId, cancellationToken);
         if (request is null)
         {
             return ServiceResult.Fail("Talep bulunamadı.");

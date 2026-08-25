@@ -124,6 +124,40 @@
         });
     }
 
+    /* ---------- DataTables ---------- */
+    function bindDataTables() {
+        if (typeof DataTable === "undefined") { return; }
+        document.querySelectorAll("table.js-datatable").forEach(function (table) {
+            if (table.dataset.dtReady === "1") { return; }
+            table.dataset.dtReady = "1";
+            var nosort = Array.prototype.map.call(table.querySelectorAll("thead th"), function (th, i) {
+                return th.classList.contains("no-sort") ? i : null;
+            }).filter(function (i) { return i !== null; });
+            var options = {
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [],
+                autoWidth: false,
+                deferRender: true,
+                language: {
+                    search: "Ara:",
+                    searchPlaceholder: "Tabloda ara",
+                    lengthMenu: "_MENU_ kayıt",
+                    info: "_START_–_END_ / _TOTAL_ kayıt",
+                    infoEmpty: "Kayıt yok",
+                    infoFiltered: "(_MAX_ kayıt içinde)",
+                    zeroRecords: "Eşleşen kayıt yok",
+                    emptyTable: "Tabloda veri yok",
+                    paginate: { first: "İlk", last: "Son", next: "›", previous: "‹" }
+                }
+            };
+            if (nosort.length) {
+                options.columnDefs = [{ orderable: false, targets: nosort }];
+            }
+            new DataTable(table, options);
+        });
+    }
+
     /* ---------- Sayfa yenileme sayacı ---------- */
     function bindRefreshMeter() {
         var meter = document.querySelector("[data-refresh]");
@@ -146,6 +180,7 @@
         bindRefreshMeter();
         refreshElapsed();
         setInterval(refreshElapsed, 30000);
+        bindDataTables();
     });
 
     window.App = App;

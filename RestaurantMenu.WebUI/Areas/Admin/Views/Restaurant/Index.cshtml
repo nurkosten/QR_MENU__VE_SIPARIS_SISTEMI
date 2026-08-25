@@ -1,0 +1,87 @@
+@model IEnumerable<RestaurantListItemViewModel>
+@{
+    ViewData["Title"] = "Restoranlar";
+    var restaurants = Model.ToList();
+}
+
+<div class="page-head">
+    <div>
+        <h1>Restoranlar</h1>
+        <p class="page-sub">Menü, masa ve siparişler seçtiğiniz restorana göre gösterilir</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-primary btn-sm" asp-action="Create">
+            <partial name="_Icon" model='"plus"' /> Yeni restoran
+        </a>
+    </div>
+</div>
+
+<div class="panel">
+    @if (restaurants.Count == 0)
+    {
+        <div class="empty">
+            <div class="empty-icon"><partial name="_Icon" model='"store"' /></div>
+            <div class="empty-title">Henüz restoran yok</div>
+            <p class="empty-text">Menü yönetimine başlamak için ilk restoranı ekleyin.</p>
+            <a class="btn btn-primary btn-sm" asp-action="Create">Restoran ekle</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="table table-stack js-datatable">
+                <thead>
+                    <tr>
+                        <th>Restoran</th>
+                        <th class="num">Kategori</th>
+                        <th class="num">Ürün</th>
+                        <th class="num">Masa</th>
+                        <th>Durum</th>
+                        <th class="no-sort"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in restaurants)
+                    {
+                        <tr>
+                            <td class="cell-main">
+                                <span class="cell-title">@item.Name</span>
+                                @if (item.IsSelected)
+                                {
+                                    <span class="badge bg-success ms-2">Seçili</span>
+                                }
+                            </td>
+                            <td class="num" data-label="Kategori">@item.CategoryCount</td>
+                            <td class="num" data-label="Ürün">@item.ProductCount</td>
+                            <td class="num" data-label="Masa">@item.TableCount</td>
+                            <td data-label="Durum">
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pasif</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    @if (!item.IsSelected)
+                                    {
+                                        <form asp-area="" asp-controller="Workspace" asp-action="Select" method="post">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-outline-dark btn-sm">Seç</button>
+                                        </form>
+                                    }
+                                    <a class="btn btn-outline-dark btn-sm" asp-action="Edit" asp-route-id="@item.Id">
+                                        <partial name="_Icon" model='"pencil"' /> Düzenle
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

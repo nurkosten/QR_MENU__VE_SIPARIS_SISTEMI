@@ -6,7 +6,7 @@
 <div class="page-head">
     <div>
         <h1>Günlük özet</h1>
-        <p class="page-sub">@DateTime.Now.ToString("dd MMMM yyyy") · işletmenin anlık durumu</p>
+        <p class="page-sub">@DateTime.Now.ToString("dd MMMM yyyy") · @(ViewData["CurrentRestaurantName"] ?? "seçili restoran") anlık durumu</p>
     </div>
     <div class="page-actions">
         <a class="btn btn-outline-dark btn-sm" asp-controller="Reports" asp-action="Index">

@@ -1,0 +1,19 @@
+@model IReadOnlyList<RestaurantWorkDto>
+@if (Model.Count > 0)
+{
+    <div class="alert alert-warning rest-work-alert" role="status">
+        <strong>Başka bir restoranda sipariş var.</strong>
+        Soldaki listeden geçebilir veya:
+        <span class="rest-work-actions">
+            @foreach (var item in Model)
+            {
+                <form asp-area="" asp-controller="Workspace" asp-action="Select" method="post">
+                    <input type="hidden" name="id" value="@item.RestaurantId" />
+                    <button type="submit" class="btn btn-sm btn-outline-dark">
+                        @item.RestaurantName · @item.Count sipariş
+                    </button>
+                </form>
+            }
+        </span>
+    </div>
+}

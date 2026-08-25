@@ -26,9 +26,9 @@ public class CartController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Add(string restaurantToken, string tableToken, int productId, int quantity = 1, string? note = null)
+    public async Task<IActionResult> Add(string restaurantToken, string tableToken, int tableId, int productId, int quantity = 1, string? note = null)
     {
-        var resolved = await _menuService.ResolveTableAsync(restaurantToken, tableToken);
+        var resolved = await _menuService.ResolveTableAsync(restaurantToken, tableToken, tableId);
         if (!resolved.Success)
         {
             return View("~/Views/Menu/InvalidQr.cshtml", resolved.Error);
@@ -37,21 +37,21 @@ public class CartController : Controller
         if (quantity <= 0 || quantity > IOrderService.MaxQuantityPerLine)
         {
             TempData["Error"] = $"Adet 1 ile {IOrderService.MaxQuantityPerLine} arasında olmalıdır.";
-            return RedirectToAction("Index", "Menu", new { restaurantToken, tableToken });
+            return RedirectToAction("Index", "Menu", new { restaurantToken, tableToken, tableId });
         }
 
         var product = await _db.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == productId);
         if (product is null || !product.IsActive || !product.IsAvailable || !product.Category.IsActive)
         {
             TempData["Error"] = "Bu ürün şu anda satışta değil.";
-            return RedirectToAction("Index", "Menu", new { restaurantToken, tableToken });
+            return RedirectToAction("Index", "Menu", new { restaurantToken, tableToken, tableId });
         }
 
         var table = resolved.Data!.Table;
         if (product.Category.RestaurantId != table.RestaurantId)
         {
             TempData["Error"] = "Bu ürün bu masanın menüsünde yok.";
-            return RedirectToAction("Index", "Menu", new { restaurantToken, tableToken });
+            return RedirectToAction("Index", "Menu", new { restaurantToken, tableToken, tableId });
         }
         var cart = HttpContext.Session.GetCart() ?? new CartSession();
         if (cart.TableId != 0 && cart.TableId != table.Id)
@@ -76,7 +76,7 @@ public class CartController : Controller
 
         HttpContext.Session.SetCart(cart);
         TempData["Success"] = $"{product.Name} sepete eklendi.";
-        return RedirectToAction("Index", "Menu", new { restaurantToken, tableToken });
+        return RedirectToAction("Index", "Menu", new { restaurantToken, tableToken, tableId });
     }
 
     public async Task<IActionResult> Index()
@@ -87,7 +87,7 @@ public class CartController : Controller
             return View(new CartPageViewModel());
         }
 
-        var resolved = await _menuService.ResolveTableAsync(cart.RestaurantToken, cart.TableToken);
+        var resolved = await _menuService.ResolveTableAsync(cart.RestaurantToken, cart.TableToken, cart.TableId);
         if (!resolved.Success)
         {
             HttpContext.Session.ClearCart();
@@ -146,7 +146,7 @@ public class CartController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var resolved = await _menuService.ResolveTableAsync(cart.RestaurantToken, cart.TableToken);
+        var resolved = await _menuService.ResolveTableAsync(cart.RestaurantToken, cart.TableToken, cart.TableId);
         if (!resolved.Success)
         {
             return View("~/Views/Menu/InvalidQr.cshtml", resolved.Error);
@@ -156,7 +156,8 @@ public class CartController : Controller
             cart.RestaurantToken,
             cart.TableToken,
             cart.Lines,
-            customerNote);
+            customerNote,
+            cart.TableId);
         if (!result.Success)
         {
             TempData["Error"] = result.Error;
@@ -168,7 +169,8 @@ public class CartController : Controller
         {
             number = result.Data!.OrderNumber,
             restaurantToken = cart.RestaurantToken,
-            tableToken = cart.TableToken
+            tableToken = cart.TableToken,
+            tableId = result.Data.TableId
         });
     }
 

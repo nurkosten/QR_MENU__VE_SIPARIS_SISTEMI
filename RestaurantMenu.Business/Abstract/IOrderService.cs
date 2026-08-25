@@ -24,6 +24,7 @@ public interface IOrderService
         string tableToken,
         IReadOnlyList<CartLineInput> lines,
         string? customerNote,
+        int? tableId = null,
         CancellationToken cancellationToken = default);
 
     Task<ServiceResult<Order>> ChangeStatusAsync(
@@ -35,9 +36,15 @@ public interface IOrderService
 
     Task<Order?> GetByNumberAsync(string orderNumber, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<Order>> GetStaffOrdersAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Order>> GetStaffOrdersAsync(int restaurantId, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<Order>> GetKitchenOrdersAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Order>> GetKitchenOrdersAsync(int restaurantId, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<Order>> GetAdminOrdersAsync(OrderStatus? status, DateTime? from, DateTime? to, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Order>> GetPastOrdersAsync(int restaurantId, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Order>> GetAdminOrdersAsync(int restaurantId, OrderStatus? status, DateTime? from, DateTime? to, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<RestaurantWorkDto>> GetStaffWorkElsewhereAsync(int restaurantId, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<RestaurantWorkDto>> GetKitchenWorkElsewhereAsync(int restaurantId, CancellationToken cancellationToken = default);
 }

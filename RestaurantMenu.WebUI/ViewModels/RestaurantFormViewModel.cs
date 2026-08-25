@@ -26,9 +26,9 @@ public class RestaurantFormViewModel
     [Display(Name = "Çalışma saatleri")]
     public string? WorkingHours { get; set; }
 
-    [Required, StringLength(64)]
+    [StringLength(64)]
     [Display(Name = "Genel erişim kodu")]
-    public string PublicToken { get; set; } = string.Empty;
+    public string? PublicToken { get; set; }
 
     [Display(Name = "Aktif")]
     public bool IsActive { get; set; } = true;

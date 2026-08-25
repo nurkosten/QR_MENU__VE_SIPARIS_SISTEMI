@@ -39,7 +39,7 @@ Visual Studio veya Cursor ile `RestaurantMenu.slnx` dosyasını açın. Proje be
 | Sepet / sipariş | evet | evet | hayır | evet |
 | Durum değiştirme | hayır | evet | evet | evet |
 | Kategori / ürün / masa / QR / kullanıcı | hayır | hayır | hayır | evet |
-| Rapor | hayır | sınırlı (günlük özet) | hayır | evet |
+| Rapor | hayır | hayır | hayır | evet |
 | Garson çağrısı | oluşturur | yönetir | hayır | evet |
 
 ## Fonksiyonel karşılık (FR)
@@ -47,11 +47,11 @@ Visual Studio veya Cursor ile `RestaurantMenu.slnx` dosyasını açın. Proje be
 | ID | Gereksinim | Uygulama |
 |----|------------|----------|
 | FR-01 | Giriş / yetki | `AccountController` + Identity |
-| FR-02 | İşletme bilgisi | Admin → İşletme |
+| FR-02 | İşletme / çoklu restoran | Admin → Restoranlar (ekle, seç). Menü, masa, sipariş ve raporlar seçili restorana göre gelir |
 | FR-03 | Kategori | Admin → Kategoriler (`DisplayOrder`, aktif/pasif) |
 | FR-04 | Ürün | Admin → Ürünler (fiyat, görsel, satış durumu) |
 | FR-05 | Masa | Admin → Masalar |
-| FR-06 | QR | Benzersiz `QrToken`, PNG / yazdır |
+| FR-06 | QR | Her masanın kendine özel `QrToken` QR'ı. PNG / yazdır; tek masa veya tümü yenilenebilir |
 | FR-07 | Dijital menü | `/menu/{restaurantToken}/{tableToken}` |
 | FR-08 | Arama / filtre | Menü arama ve kategori chip |
 | FR-09 | Sepet | Session sepet, adet, not, silme |
@@ -68,13 +68,13 @@ Visual Studio veya Cursor ile `RestaurantMenu.slnx` dosyasını açın. Proje be
 - `Order` ve `OrderItem` aynı transaction içinde yazılır.
 - Satırda `ProductNameSnapshot` + `UnitPrice` saklanır; ürün fiyatı sonradan değişse geçmiş bozulmaz.
 - Durum atlama `OrderStatusMachine` ile reddedilir.
-- Müşteri siparişi **Yeni** kaydedilir; mutfak yeni ve onaylı kuyruğu görür. Personel onaylar, mutfak hazırlar.
+- Müşteri siparişi **Yeni** kaydedilir; mutfağa düşmez. Personel onaylar, mutfak hazırlar. Servis edildi / tamamlandı yalnızca personel panelinden güncellenir.
 
 ## QR güvenliği (proje dosyası §9)
 
 URL: `/menu/{restaurantToken}/{tableToken}`
 
-Sunucu tokenı arar, masa ve işletmenin aktif olduğunu ve eşleştiğini doğrular. Tahmin edilebilir `TableId` kullanılmaz.
+`tableToken` masanın kendine özel QR anahtarıdır. Sunucu tokenı restoranın `PublicToken` değeriyle birlikte doğrular ve siparişi yalnızca o masaya bağlar. Müşteri başka masa seçemez; URL'de farklı bir `tableId` gönderilirse istek reddedilir. Bir masanın QR'ı yenilenince yalnızca o masanın basılı kodu geçersiz olur.
 
 ## Test
 

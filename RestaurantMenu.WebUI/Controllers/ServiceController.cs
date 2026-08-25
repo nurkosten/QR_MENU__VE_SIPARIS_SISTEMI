@@ -17,9 +17,9 @@ public class ServiceController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RequestHelp(string restaurantToken, string tableToken, ServiceRequestType type)
+    public async Task<IActionResult> RequestHelp(string restaurantToken, string tableToken, int tableId, ServiceRequestType type)
     {
-        var resolved = await _menuService.ResolveTableAsync(restaurantToken, tableToken);
+        var resolved = await _menuService.ResolveTableAsync(restaurantToken, tableToken, tableId);
         if (!resolved.Success)
         {
             return View("~/Views/Menu/InvalidQr.cshtml", resolved.Error);
@@ -30,6 +30,6 @@ public class ServiceController : Controller
             ? (type == ServiceRequestType.CallWaiter ? "Garson çağrınız iletildi." : "Hesap talebiniz iletildi.")
             : result.Error;
 
-        return RedirectToAction("Index", "Menu", new { restaurantToken, tableToken });
+        return RedirectToAction("Index", "Menu", new { restaurantToken, tableToken, tableId });
     }
 }

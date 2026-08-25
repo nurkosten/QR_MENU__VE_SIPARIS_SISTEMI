@@ -18,8 +18,10 @@ public class HomeController : Controller
         var table = await _db.RestaurantTables
             .AsNoTracking()
             .Include(t => t.Restaurant)
-            .Where(t => t.IsActive && t.Restaurant.IsActive)
-            .OrderBy(t => t.TableNumber)
+            .Where(t => t.IsActive && t.Restaurant.IsActive && t.QrToken != "")
+            .OrderBy(t => t.RestaurantId)
+            .ThenBy(t => t.TableNumber)
+            .ThenBy(t => t.Id)
             .FirstOrDefaultAsync();
 
         if (table is not null)
@@ -31,8 +33,7 @@ public class HomeController : Controller
             });
         }
 
-        var restaurant = await _db.Restaurants.AsNoTracking().FirstOrDefaultAsync();
-        return View(restaurant);
+        return View(await _db.Restaurants.AsNoTracking().FirstOrDefaultAsync(r => r.IsActive));
     }
 
     public IActionResult Error()

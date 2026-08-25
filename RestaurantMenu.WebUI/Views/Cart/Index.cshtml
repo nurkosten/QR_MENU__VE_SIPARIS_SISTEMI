@@ -21,7 +21,8 @@
             <a class="btn btn-outline-dark btn-sm"
                asp-controller="Menu" asp-action="Index"
                asp-route-restaurantToken="@Model.Restaurant.PublicToken"
-               asp-route-tableToken="@Model.Table.QrToken">
+               asp-route-tableToken="@Model.Table.QrToken"
+               asp-route-tableId="@Model.Table.Id">
                 <partial name="_Icon" model='"arrow-left"' /> Menüye dön
             </a>
         </div>

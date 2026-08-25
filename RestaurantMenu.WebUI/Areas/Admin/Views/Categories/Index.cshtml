@@ -7,7 +7,7 @@
 <div class="page-head">
     <div>
         <h1>Kategoriler</h1>
-        <p class="page-sub">Menüdeki bölümler ve görüntülenme sıraları</p>
+        <p class="page-sub">@(ViewData["CurrentRestaurantName"] ?? "Seçili restoran") menüsündeki bölümler ve görüntülenme sıraları</p>
     </div>
     <div class="page-actions">
         <a class="btn btn-primary btn-sm" asp-action="Create">
@@ -29,13 +29,13 @@
     else
     {
         <div class="table-wrap">
-            <table class="table table-stack">
+            <table class="table table-stack js-datatable">
                 <thead>
                     <tr>
                         <th>Kategori</th>
                         <th class="num">Sıra</th>
                         <th>Durum</th>
-                        <th></th>
+                        <th class="no-sort"></th>
                     </tr>
                 </thead>
                 <tbody>

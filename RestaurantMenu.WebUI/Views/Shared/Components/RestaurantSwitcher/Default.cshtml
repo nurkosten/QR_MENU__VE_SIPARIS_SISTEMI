@@ -1,0 +1,35 @@
+@model RestaurantSwitcherViewModel
+@{
+    var restaurants = Model.Restaurants;
+}
+
+@if (restaurants.Count == 0)
+{
+    @if (User.IsInRole(AppRoles.Admin))
+    {
+        <a class="rest-switch-empty" asp-area="Admin" asp-controller="Restaurant" asp-action="Create">Restoran ekle</a>
+    }
+}
+else if (restaurants.Count == 1)
+{
+    <div class="rest-switch-label" title="@restaurants[0].Name">@restaurants[0].Name</div>
+}
+else
+{
+    <form asp-area="" asp-controller="Workspace" asp-action="Select" method="post" class="rest-switch-form">
+        <label class="visually-hidden" for="restaurant-switch">Restoran seç</label>
+        <select id="restaurant-switch" name="id" class="rest-switch" onchange="this.form.submit()">
+            @foreach (var restaurant in restaurants)
+            {
+                if (restaurant.Id == Model.SelectedId)
+                {
+                    <option value="@restaurant.Id" selected>@restaurant.Name</option>
+                }
+                else
+                {
+                    <option value="@restaurant.Id">@restaurant.Name</option>
+                }
+            }
+        </select>
+    </form>
+}

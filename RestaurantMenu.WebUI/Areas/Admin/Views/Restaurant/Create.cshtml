@@ -1,0 +1,85 @@
+@model RestaurantFormViewModel
+@{
+    ViewData["Title"] = "Yeni restoran";
+}
+
+<div class="page-head">
+    <div>
+        <h1>Yeni restoran</h1>
+        <p class="page-sub">Ekledikten sonra menü, masa ve QR kodları bu işletmeye bağlanır</p>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="panel">
+                <div class="panel-head"><h2 class="panel-title">Genel bilgiler</h2></div>
+                <div class="panel-body">
+                    <div asp-validation-summary="ModelOnly" class="validation-summary-errors mb-3"></div>
+                    <div class="form-grid">
+                        <div class="col-full">
+                            <label asp-for="Name" class="form-label"></label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="field-validation-error"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Phone" class="form-label"></label>
+                            <input asp-for="Phone" class="form-control" />
+                            <span asp-validation-for="Phone" class="field-validation-error"></span>
+                        </div>
+                        <div>
+                            <label asp-for="WorkingHours" class="form-label"></label>
+                            <input asp-for="WorkingHours" class="form-control" placeholder="Örn. 09:00 - 23:00" />
+                            <span asp-validation-for="WorkingHours" class="field-validation-error"></span>
+                        </div>
+                        <div class="col-full">
+                            <label asp-for="Address" class="form-label"></label>
+                            <input asp-for="Address" class="form-control" />
+                            <span asp-validation-for="Address" class="field-validation-error"></span>
+                        </div>
+                        <div class="col-full">
+                            <label asp-for="Description" class="form-label"></label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="field-validation-error"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="panel mb-3">
+                <div class="panel-head"><h2 class="panel-title">Menü erişimi</h2></div>
+                <div class="panel-body">
+                    <label asp-for="PublicToken" class="form-label"></label>
+                    <input asp-for="PublicToken" class="form-control" placeholder="Boş bırakılırsa addan üretilir" />
+                    <p class="field-hint">Menü adreslerinde kullanılan işletme anahtarı. Benzersiz olmalıdır.</p>
+                    <span asp-validation-for="PublicToken" class="field-validation-error"></span>
+                    <div class="form-check form-switch mt-3">
+                        <input asp-for="IsActive" class="form-check-input" />
+                        <label asp-for="IsActive" class="form-check-label"></label>
+                    </div>
+                    <p class="field-hint">İşletme pasifken QR menü açılmaz.</p>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head"><h2 class="panel-title">Logo</h2></div>
+                <div class="panel-body">
+                    <input type="file" name="logo" class="form-control" accept="image/*" />
+                    <p class="field-hint">İsteğe bağlı. Müşteri menüsünün başında görünür.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a class="btn btn-outline-dark" asp-action="Index">Vazgeç</a>
+        <button class="btn btn-primary" type="submit">Restoranı oluştur</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
