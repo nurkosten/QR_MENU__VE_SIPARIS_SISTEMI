@@ -8,6 +8,8 @@ public interface ICurrentRestaurant
 
     int? Id { get; }
 
+    bool CanSwitch { get; }
+
     void Set(int id);
 
     Task EnsureAsync(CancellationToken cancellationToken = default);

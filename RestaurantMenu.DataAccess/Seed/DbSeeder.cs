@@ -24,64 +24,65 @@ public static class DbSeeder
         }
 
         await EnsureUserAsync(userManager, "admin@restaurant.local", "Admin123!", "Sistem Yöneticisi", AppRoles.Admin);
+        await EnsureUserAsync(userManager, "sahip@restaurant.local", "Sahip123!", "Restoran Sahibi", AppRoles.Sahip);
         await EnsureUserAsync(userManager, "personel@restaurant.local", "Personel123!", "Garson", AppRoles.Personel);
         await EnsureUserAsync(userManager, "mutfak@restaurant.local", "Mutfak123!", "Mutfak", AppRoles.Mutfak);
 
-        if (await db.Restaurants.AnyAsync())
+        if (!await db.Restaurants.AnyAsync())
         {
-            return;
-        }
-
-        var restaurant = new Restaurant
-        {
-            Name = "Nur Burger",
-            Address = "Malatya / Yeşilyurt",
-            Phone = "0422 000 00 00",
-            Description = "QR kod ile masadan sipariş verebileceğiniz demo restoran.",
-            WorkingHours = "11:00 - 23:00",
-            PublicToken = "nur-burger",
-            MenuQrToken = Guid.NewGuid().ToString("N"),
-            IsActive = true
-        };
-
-        db.Restaurants.Add(restaurant);
-        await db.SaveChangesAsync();
-
-        var burgers = new Category { RestaurantId = restaurant.Id, Name = "Burgerler", DisplayOrder = 1, IsActive = true };
-        var drinks = new Category { RestaurantId = restaurant.Id, Name = "İçecekler", DisplayOrder = 2, IsActive = true };
-        db.Categories.AddRange(burgers, drinks);
-        await db.SaveChangesAsync();
-
-        db.Products.AddRange(
-            new Product
+            var restaurant = new Restaurant
             {
-                CategoryId = burgers.Id,
-                Name = "Cheeseburger",
-                Description = "Dana eti, cheddar peyniri, marul ve özel sos.",
-                Price = 220m,
-                IsAvailable = true,
+                Name = "Nur Burger",
+                Address = "Malatya / Yeşilyurt",
+                Phone = "0422 000 00 00",
+                Description = "QR kod ile masadan sipariş verebileceğiniz demo restoran.",
+                WorkingHours = "11:00 - 23:00",
+                PublicToken = "nur-burger",
+                MenuQrToken = Guid.NewGuid().ToString("N"),
                 IsActive = true
-            },
-            new Product
+            };
+
+            db.Restaurants.Add(restaurant);
+            await db.SaveChangesAsync();
+
+            var burgers = new Category { RestaurantId = restaurant.Id, Name = "Burgerler", DisplayOrder = 1, IsActive = true };
+            var drinks = new Category { RestaurantId = restaurant.Id, Name = "İçecekler", DisplayOrder = 2, IsActive = true };
+            db.Categories.AddRange(burgers, drinks);
+            await db.SaveChangesAsync();
+
+            db.Products.AddRange(
+                new Product
+                {
+                    CategoryId = burgers.Id,
+                    Name = "Cheeseburger",
+                    Description = "Dana eti, cheddar peyniri, marul ve özel sos.",
+                    Price = 220m,
+                    IsAvailable = true,
+                    IsActive = true
+                },
+                new Product
+                {
+                    CategoryId = drinks.Id,
+                    Name = "Kola",
+                    Description = "330 ml kutu kola.",
+                    Price = 45m,
+                    IsAvailable = true,
+                    IsActive = true
+                });
+
+            db.RestaurantTables.Add(new RestaurantTable
             {
-                CategoryId = drinks.Id,
-                Name = "Kola",
-                Description = "330 ml kutu kola.",
-                Price = 45m,
-                IsAvailable = true,
+                RestaurantId = restaurant.Id,
+                TableNumber = 8,
+                Name = "Masa 8",
+                QrToken = Guid.NewGuid().ToString("N"),
                 IsActive = true
             });
 
-        db.RestaurantTables.Add(new RestaurantTable
-        {
-            RestaurantId = restaurant.Id,
-            TableNumber = 8,
-            Name = "Masa 8",
-            QrToken = Guid.NewGuid().ToString("N"),
-            IsActive = true
-        });
+            await db.SaveChangesAsync();
+        }
 
-        await db.SaveChangesAsync();
+        await BindUnassignedStaffAsync(db, userManager);
     }
 
     private static async Task EnsureUserAsync(
@@ -114,5 +115,23 @@ public static class DbSeeder
         }
 
         await userManager.AddToRoleAsync(user, role);
+    }
+
+    private static async Task BindUnassignedStaffAsync(AppDbContext db, UserManager<ApplicationUser> userManager)
+    {
+        var firstId = await db.Restaurants.OrderBy(r => r.Id).Select(r => r.Id).FirstOrDefaultAsync();
+        if (firstId <= 0)
+        {
+            return;
+        }
+
+        var staff = await userManager.GetUsersInRoleAsync(AppRoles.Personel);
+        var kitchen = await userManager.GetUsersInRoleAsync(AppRoles.Mutfak);
+        var owners = await userManager.GetUsersInRoleAsync(AppRoles.Sahip);
+        foreach (var user in staff.Concat(kitchen).Concat(owners).Where(u => u.RestaurantId is null))
+        {
+            user.RestaurantId = firstId;
+            await userManager.UpdateAsync(user);
+        }
     }
 }

@@ -140,9 +140,16 @@
                 order: [],
                 autoWidth: false,
                 deferRender: true,
+                searching: true,
+                layout: {
+                    topStart: "search",
+                    topEnd: "pageLength",
+                    bottomStart: "info",
+                    bottomEnd: "paging"
+                },
                 language: {
-                    search: "Ara:",
-                    searchPlaceholder: "Tabloda ara",
+                    search: "",
+                    searchPlaceholder: "İsim, numara veya metin ara",
                     lengthMenu: "_MENU_ kayıt",
                     info: "_START_–_END_ / _TOTAL_ kayıt",
                     infoEmpty: "Kayıt yok",
@@ -155,7 +162,30 @@
             if (nosort.length) {
                 options.columnDefs = [{ orderable: false, targets: nosort }];
             }
-            new DataTable(table, options);
+            enhanceDataTableSearch(new DataTable(table, options));
+        });
+    }
+
+    function enhanceDataTableSearch(api) {
+        var search = api.table().container().querySelector(".dt-search");
+        if (!search || search.querySelector(".dt-search-btn")) { return; }
+        var input = search.querySelector("input[type='search'], input");
+        if (!input) { return; }
+        input.setAttribute("aria-label", "Tabloda ara");
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-primary btn-sm dt-search-btn";
+        button.textContent = "Ara";
+        search.appendChild(button);
+        function runSearch() {
+            api.search(input.value).draw();
+        }
+        button.addEventListener("click", runSearch);
+        input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                runSearch();
+            }
         });
     }
 

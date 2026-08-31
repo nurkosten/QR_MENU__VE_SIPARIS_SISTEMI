@@ -16,7 +16,11 @@
     var atIndex = displayName.IndexOf('@');
     var shortName = atIndex > 0 ? displayName[..atIndex] : displayName;
     var initials = shortName.Length > 0 ? shortName[..1].ToUpperInvariant() : "?";
-    var roleLabel = User.IsInRole(AppRoles.Admin) ? "Yönetici"
+    var isAdmin = User.IsInRole(AppRoles.Admin);
+    var isSahip = User.IsInRole(AppRoles.Sahip);
+    var isManager = isAdmin || isSahip;
+    var roleLabel = isAdmin ? "Yönetici"
+        : isSahip ? "Restoran sahibi"
         : User.IsInRole(AppRoles.Personel) ? "Personel"
         : User.IsInRole(AppRoles.Mutfak) ? "Mutfak" : "Kullanıcı";
     await CurrentRestaurant.EnsureAsync();
@@ -44,13 +48,13 @@
                 <span class="brand-mark"><partial name="_Icon" model='"dish"' /></span>
                 <span>
                     <span class="brand-name d-block">QR Menü</span>
-                    <span class="brand-sub">Yönetim paneli</span>
+                    <span class="brand-sub">@(isSahip ? "Restoran paneli" : "Yönetim paneli")</span>
                 </span>
             </div>
             @await Component.InvokeAsync("RestaurantSwitcher")
 
             <nav class="nav-scroll">
-                @if (User.IsInRole(AppRoles.Admin))
+                @if (isManager)
                 {
                     <div class="nav-group">
                         <div class="nav-group-title">Genel</div>
@@ -60,6 +64,15 @@
                         <a class="@NavState("Admin", "Reports")" asp-area="Admin" asp-controller="Reports" asp-action="Index">
                             <partial name="_Icon" model='"chart"' /> Raporlar
                         </a>
+                        @if (isAdmin)
+                        {
+                            <a class="@NavState("Admin", "Logs")" asp-area="Admin" asp-controller="Logs" asp-action="Index">
+                                <partial name="_Icon" model='"list"' /> Sistem kayıtları
+                            </a>
+                            <a class="nav-link-item" href="/hangfire">
+                                <partial name="_Icon" model='"grid"' /> Hangfire
+                            </a>
+                        }
                     </div>
                     <div class="nav-group">
                         <div class="nav-group-title">Menü yönetimi</div>
@@ -78,9 +91,12 @@
                         <a class="@NavState("Admin", "Orders")" asp-area="Admin" asp-controller="Orders" asp-action="Index">
                             <partial name="_Icon" model='"receipt"' /> Siparişler
                         </a>
-                        <a class="@NavState("Admin", "Restaurant", "Index")" asp-area="Admin" asp-controller="Restaurant" asp-action="Index">
-                            <partial name="_Icon" model='"store"' /> Restoranlar
-                        </a>
+                        @if (isAdmin)
+                        {
+                            <a class="@NavState("Admin", "Restaurant", "Index")" asp-area="Admin" asp-controller="Restaurant" asp-action="Index">
+                                <partial name="_Icon" model='"store"' /> Restoranlar
+                            </a>
+                        }
                         <a class="@NavState("Admin", "Restaurant", "Edit")" asp-area="Admin" asp-controller="Restaurant" asp-action="Edit">
                             <partial name="_Icon" model='"store"' /> İşletme bilgileri
                         </a>
@@ -90,17 +106,17 @@
                     </div>
                 }
 
-                @if (User.IsInRole(AppRoles.Personel) || User.IsInRole(AppRoles.Mutfak) || User.IsInRole(AppRoles.Admin))
+                @if (User.IsInRole(AppRoles.Personel) || User.IsInRole(AppRoles.Mutfak) || isManager)
                 {
                     <div class="nav-group">
                         <div class="nav-group-title">Operasyon</div>
-                        @if (User.IsInRole(AppRoles.Personel) || User.IsInRole(AppRoles.Admin))
+                        @if (User.IsInRole(AppRoles.Personel) || isManager)
                         {
                             <a class="@NavState("Staff", "StaffOrders")" asp-area="Staff" asp-controller="StaffOrders" asp-action="Index">
                                 <partial name="_Icon" model='"clipboard"' /> Personel ekranı
                             </a>
                         }
-                        @if (User.IsInRole(AppRoles.Mutfak) || User.IsInRole(AppRoles.Admin))
+                        @if (User.IsInRole(AppRoles.Mutfak) || isManager)
                         {
                             <a class="@NavState("Kitchen", "KitchenOrders")" asp-area="Kitchen" asp-controller="KitchenOrders" asp-action="Index">
                                 <partial name="_Icon" model='"flame"' /> Mutfak ekranı

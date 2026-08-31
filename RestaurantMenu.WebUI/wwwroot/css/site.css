@@ -670,6 +670,13 @@ a.list-row:hover svg { color: var(--brand-600); }
     width: 100%;
     overflow-x: auto;
 }
+.dt-container .dt-search {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex: 1 1 18rem;
+    min-width: min(100%, 16rem);
+}
 .dt-container .dt-search label,
 .dt-container .dt-length label {
     display: flex;
@@ -679,6 +686,8 @@ a.list-row:hover svg { color: var(--brand-600); }
     font-size: .8rem;
     font-weight: 600;
     color: var(--ink-400);
+    flex: 1 1 auto;
+    min-width: 0;
 }
 .dt-container .dt-search input,
 .dt-container .dt-length select {
@@ -690,7 +699,15 @@ a.list-row:hover svg { color: var(--brand-600); }
     font-size: .86rem;
     min-height: 36px;
 }
-.dt-container .dt-search input { min-width: min(100%, 220px); }
+.dt-container .dt-search input {
+    width: 100%;
+    min-width: 12rem;
+}
+.dt-container .dt-search-btn {
+    flex-shrink: 0;
+    min-height: 36px;
+    padding-inline: .9rem;
+}
 .dt-container .dt-info { font-size: .78rem; color: var(--ink-400); }
 .dt-container .dt-paging {
     display: flex;

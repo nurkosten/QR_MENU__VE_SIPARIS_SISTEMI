@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantMenu.Entities.Identity;
+using RestaurantMenu.WebUI.Infrastructure;
 using RestaurantMenu.WebUI.ViewModels;
 
 namespace RestaurantMenu.WebUI.Controllers;
@@ -48,13 +49,18 @@ public class AccountController : Controller
             return View(model);
         }
 
+        if (user.RestaurantId is > 0 && !await _userManager.IsInRoleAsync(user, AppRoles.Admin))
+        {
+            HttpContext.Session.SetInt32(ICurrentRestaurant.SessionKey, user.RestaurantId.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
         {
             return Redirect(returnUrl);
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        if (roles.Contains(AppRoles.Admin))
+        if (roles.Contains(AppRoles.Admin) || roles.Contains(AppRoles.Sahip))
         {
             return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
         }

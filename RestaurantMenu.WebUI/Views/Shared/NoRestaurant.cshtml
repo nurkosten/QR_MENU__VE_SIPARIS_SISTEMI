@@ -1,10 +1,19 @@
 @{
     ViewData["Title"] = "Restoran seçilmedi";
     Layout = "_AdminLayout";
+    var isAdmin = User.IsInRole(AppRoles.Admin);
 }
 
 <div class="empty">
     <div class="empty-icon"><partial name="_Icon" model='"store"' /></div>
-    <div class="empty-title">Henüz restoran yok</div>
-    <p class="empty-text">Menü ve sipariş ekranları bir restoran seçilene kadar açılamaz. Yöneticinin önce restoran eklemesi gerekir.</p>
+    @if (isAdmin)
+    {
+        <div class="empty-title">Henüz restoran yok</div>
+        <p class="empty-text">Menü ve sipariş ekranları bir restoran seçilene kadar açılamaz. Önce restoran ekleyin.</p>
+    }
+    else
+    {
+        <div class="empty-title">Restoran atanmadı</div>
+        <p class="empty-text">Bu hesap bir restorana bağlı değil. Yöneticinin sizi bir restorana kaydetmesi gerekir.</p>
+    }
 </div>

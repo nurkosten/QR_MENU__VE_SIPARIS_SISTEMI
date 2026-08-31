@@ -25,6 +25,7 @@ public class CurrentRestaurantFilter : IAsyncActionFilter
         var controller = context.RouteData.Values["controller"]?.ToString();
         var action = context.RouteData.Values["action"]?.ToString();
         if (string.Equals(controller, "Users", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(controller, "Logs", StringComparison.OrdinalIgnoreCase)
             || (string.Equals(controller, "Restaurant", StringComparison.OrdinalIgnoreCase)
                 && action is "Index" or "Create"))
         {

@@ -7,7 +7,7 @@ using RestaurantMenu.WebUI.Infrastructure;
 namespace RestaurantMenu.WebUI.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = AppRoles.Admin)]
+[Authorize(Roles = AppRoles.Managers)]
 public class DashboardController : Controller
 {
     private readonly IReportService _reports;

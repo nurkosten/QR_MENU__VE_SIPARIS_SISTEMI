@@ -19,10 +19,19 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
+    public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ApplicationUser>(entity =>
+        {
+            entity.HasOne(x => x.Restaurant)
+                .WithMany()
+                .HasForeignKey(x => x.RestaurantId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
         modelBuilder.Entity<Restaurant>(entity =>
         {
@@ -119,6 +128,19 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany()
                 .HasForeignKey(x => x.HandledByUserId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<ActivityLog>(entity =>
+        {
+            entity.ToTable("ActivityLogs");
+            entity.Property(x => x.Level).IsRequired().HasMaxLength(20);
+            entity.Property(x => x.Category).IsRequired().HasMaxLength(40);
+            entity.Property(x => x.Message).IsRequired().HasMaxLength(1000);
+            entity.Property(x => x.UserName).HasMaxLength(256);
+            entity.Property(x => x.Path).HasMaxLength(400);
+            entity.Property(x => x.HttpMethod).HasMaxLength(16);
+            entity.HasIndex(x => x.CreatedAt);
+            entity.HasIndex(x => new { x.Level, x.CreatedAt });
         });
     }
 }

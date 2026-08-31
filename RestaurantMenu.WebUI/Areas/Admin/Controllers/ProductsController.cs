@@ -11,7 +11,7 @@ using RestaurantMenu.WebUI.ViewModels;
 namespace RestaurantMenu.WebUI.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = AppRoles.Admin)]
+[Authorize(Roles = AppRoles.Managers)]
 public class ProductsController : Controller
 {
     private readonly AppDbContext _db;

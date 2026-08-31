@@ -1,12 +1,12 @@
-﻿@model UserFormViewModel
+@model UserFormViewModel
 @{
-    ViewData["Title"] = "Kullanıcı ekle";
+    ViewData["Title"] = "Kullanıcı düzenle";
 }
 
 <div class="page-head">
     <div>
-        <h1>Kullanıcı ekle</h1>
-        <p class="page-sub">Personel ve mutfak hesapları yalnızca kayıtlı oldukları restoranın ekranını görür</p>
+        <h1>Kullanıcı düzenle</h1>
+        <p class="page-sub">Personel ve mutfak hesaplarını bir restorana bağlayın</p>
     </div>
     <div class="page-actions">
         <a class="btn btn-ghost btn-sm" asp-action="Index">
@@ -56,7 +56,7 @@
                         <div>
                             <label asp-for="Password" class="form-label"></label>
                             <input asp-for="Password" class="form-control" type="password" autocomplete="new-password" />
-                            <p class="field-hint">En az 8 karakter; büyük/küçük harf ve rakam içermelidir.</p>
+                            <p class="field-hint">Boş bırakırsanız mevcut şifre değişmez.</p>
                             <span asp-validation-for="Password" class="field-validation-error"></span>
                         </div>
                     </div>

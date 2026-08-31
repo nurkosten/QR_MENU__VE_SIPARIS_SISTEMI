@@ -1,0 +1,79 @@
+@model IReadOnlyList<ActivityLog>
+@{
+    ViewData["Title"] = "Sistem kayıtları";
+    var level = ViewBag.Level as string;
+}
+
+<div class="page-head">
+    <div>
+        <h1>Sistem kayıtları</h1>
+        <p class="page-sub">Hangfire kuyruğu ile yazılan son işlemler · @Model.Count kayıt</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-outline-dark btn-sm" href="/hangfire">
+            <partial name="_Icon" model='"grid"' /> Hangfire
+        </a>
+    </div>
+</div>
+
+<nav class="chip-nav" aria-label="Seviye filtresi">
+    <a class="cat-chip @(level is null ? "on" : "")" asp-action="Index">Tümü</a>
+    <a class="cat-chip @(level == "Info" ? "on" : "")" asp-action="Index" asp-route-level="Info">Bilgi</a>
+    <a class="cat-chip @(level == "Warning" ? "on" : "")" asp-action="Index" asp-route-level="Warning">Uyarı</a>
+    <a class="cat-chip @(level == "Error" ? "on" : "")" asp-action="Index" asp-route-level="Error">Hata</a>
+</nav>
+
+<div class="panel">
+    @if (Model.Count == 0)
+    {
+        <div class="empty">
+            <div class="empty-icon"><partial name="_Icon" model='"inbox"' /></div>
+            <div class="empty-title">Kayıt yok</div>
+            <p class="empty-text">Henüz Hangfire kuyruğuna düşmüş bir işlem kaydı bulunmuyor. Giriş, sipariş veya yönetim kaydetme işlemlerinden sonra burada görünür.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="table table-stack js-datatable">
+                <thead>
+                    <tr>
+                        <th>Zaman</th>
+                        <th>Seviye</th>
+                        <th>Kaynak</th>
+                        <th>Kullanıcı</th>
+                        <th>İşlem</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model)
+                    {
+                        var badge = row.Level switch
+                        {
+                            "Error" => "danger",
+                            "Warning" => "warning",
+                            _ => "light"
+                        };
+                        <tr>
+                            <td data-label="Zaman">
+                                <span class="cell-title d-block">@row.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss")</span>
+                            </td>
+                            <td data-label="Seviye"><span class="badge bg-@badge">@row.Level</span></td>
+                            <td data-label="Kaynak">@row.Category</td>
+                            <td data-label="Kullanıcı">@(row.UserName ?? "—")</td>
+                            <td class="cell-main">
+                                <span class="cell-title d-block">@row.Message</span>
+                                @if (!string.IsNullOrWhiteSpace(row.HttpMethod) || !string.IsNullOrWhiteSpace(row.Path))
+                                {
+                                    <span class="cell-sub">@row.HttpMethod @row.Path</span>
+                                }
+                            </td>
+                            <td data-label="Durum">@(row.StatusCode?.ToString() ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

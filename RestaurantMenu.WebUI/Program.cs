@@ -1,12 +1,17 @@
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Infrastructure;
 using RestaurantMenu.Business.Abstract;
 using RestaurantMenu.Business.Concrete;
 using RestaurantMenu.DataAccess.Context;
 using RestaurantMenu.DataAccess.Seed;
 using RestaurantMenu.Entities.Identity;
+using RestaurantMenu.WebUI.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+QuestPDF.Settings.License = LicenseType.Community;
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("DefaultConnection bağlantı bilgisi bulunamadı.");
@@ -42,9 +47,27 @@ builder.Services.AddScoped<IMenuService, MenuManager>();
 builder.Services.AddScoped<IOrderService, OrderManager>();
 builder.Services.AddScoped<IServiceRequestService, ServiceRequestManager>();
 builder.Services.AddScoped<IReportService, ReportManager>();
+builder.Services.AddScoped<IActivityLogService, ActivityLogManager>();
 builder.Services.AddScoped<IQrCodeService, QrCodeManager>();
-builder.Services.AddScoped<RestaurantMenu.WebUI.Infrastructure.ICurrentRestaurant, RestaurantMenu.WebUI.Infrastructure.CurrentRestaurant>();
-builder.Services.AddScoped<RestaurantMenu.WebUI.Infrastructure.CurrentRestaurantFilter>();
+builder.Services.AddScoped<ICurrentRestaurant, CurrentRestaurant>();
+builder.Services.AddScoped<CurrentRestaurantFilter>();
+builder.Services.AddSingleton<IActivityLogQueue, HangfireActivityLogQueue>();
+builder.Services.AddScoped<ActivityLogActionFilter>();
+
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(connectionString, new SqlServerStorageOptions
+    {
+        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+        QueuePollInterval = TimeSpan.Zero,
+        UseRecommendedIsolationLevel = true,
+        DisableGlobalLocks = true,
+        PrepareSchemaIfNecessary = true
+    }));
+builder.Services.AddHangfireServer();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -58,7 +81,8 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddControllersWithViews(options =>
 {
-    options.Filters.AddService<RestaurantMenu.WebUI.Infrastructure.CurrentRestaurantFilter>();
+    options.Filters.AddService<CurrentRestaurantFilter>();
+    options.Filters.AddService<ActivityLogActionFilter>();
 });
 
 var app = builder.Build();
@@ -78,7 +102,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseMiddleware<RestaurantMenu.WebUI.Infrastructure.ExceptionLoggingMiddleware>();
+app.UseMiddleware<ExceptionLoggingMiddleware>();
 app.Use(async (context, next) =>
 {
     context.Response.OnStarting(() =>
@@ -96,6 +120,40 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
 app.UseStatusCodePagesWithReExecute("/Home/NotFoundPage");
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/hangfire"))
+    {
+        if (context.User.Identity?.IsAuthenticated != true)
+        {
+            context.Response.Redirect("/Account/Login?ReturnUrl=%2Fhangfire");
+            return;
+        }
+
+        if (!context.User.IsInRole(AppRoles.Admin))
+        {
+            context.Response.Redirect("/Account/AccessDenied");
+            return;
+        }
+    }
+
+    await next();
+});
+
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new HangfireAdminAuthorizationFilter()],
+    DashboardTitle = "QR Menü · İş kuyruğu",
+    DisplayStorageConnectionString = false,
+    StatsPollingInterval = 5000
+});
+
+RecurringJob.AddOrUpdate<IActivityLogService>(
+    "activity-log-cleanup",
+    service => service.DeleteOlderThanDaysAsync(90, CancellationToken.None),
+    Cron.Daily(3, 15),
+    new RecurringJobOptions { TimeZone = TimeZoneInfo.Local });
 
 app.MapControllerRoute(
     name: "areas",

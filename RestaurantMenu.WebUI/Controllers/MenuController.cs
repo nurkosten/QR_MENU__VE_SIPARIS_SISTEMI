@@ -91,6 +91,7 @@ public class MenuController : Controller
     private bool IsStaffPreview() =>
         User.Identity?.IsAuthenticated == true
         && (User.IsInRole(AppRoles.Admin)
+            || User.IsInRole(AppRoles.Sahip)
             || User.IsInRole(AppRoles.Personel)
             || User.IsInRole(AppRoles.Mutfak));
 }

@@ -8,11 +8,14 @@
         <h1>İşletme bilgileri</h1>
         <p class="page-sub">Müşteri menüsünün başlığında görünen bilgiler</p>
     </div>
-    <div class="page-actions">
-        <a class="btn btn-outline-dark btn-sm" asp-action="Index">
-            Tüm restoranlar
-        </a>
-    </div>
+    @if (User.IsInRole(AppRoles.Admin))
+    {
+        <div class="page-actions">
+            <a class="btn btn-outline-dark btn-sm" asp-action="Index">
+                Tüm restoranlar
+            </a>
+        </div>
+    }
 </div>
 
 <form method="post" enctype="multipart/form-data">

@@ -23,6 +23,9 @@
             <a class="@(range == "weekly" ? "on" : "")" asp-action="Index" asp-route-range="weekly">Haftalık</a>
             <a class="@(range == "monthly" ? "on" : "")" asp-action="Index" asp-route-range="monthly">Aylık</a>
         </div>
+        <a class="btn btn-outline-dark btn-sm" asp-action="Pdf" asp-route-range="@range">
+            <partial name="_Icon" model='"download"' /> PDF indir
+        </a>
     </div>
 </div>
 

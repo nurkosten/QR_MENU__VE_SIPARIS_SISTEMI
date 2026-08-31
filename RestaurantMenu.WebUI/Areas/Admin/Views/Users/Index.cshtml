@@ -6,7 +6,7 @@
 <div class="page-head">
     <div>
         <h1>Kullanıcılar</h1>
-        <p class="page-sub">@Model.Count hesap · roller yetki alanlarını belirler</p>
+        <p class="page-sub">@Model.Count hesap · restoran sahibi yalnızca kendi personelini yönetir</p>
     </div>
     <div class="page-actions">
         <a class="btn btn-primary btn-sm" asp-action="Create">
@@ -34,7 +34,9 @@
                         <th>Kullanıcı</th>
                         <th>E-posta</th>
                         <th>Rol</th>
+                        <th>Restoran</th>
                         <th>Durum</th>
+                        <th class="no-sort"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,6 +52,7 @@
                             </td>
                             <td data-label="E-posta">@row.User.Email</td>
                             <td data-label="Rol"><span class="badge bg-light no-dot">@row.Roles</span></td>
+                            <td data-label="Restoran">@(row.User.Restaurant?.Name ?? "—")</td>
                             <td data-label="Durum">
                                 @if (row.User.IsActive)
                                 {
@@ -59,6 +62,11 @@
                                 {
                                     <span class="badge bg-secondary">Pasif</span>
                                 }
+                            </td>
+                            <td>
+                                <a class="btn btn-outline-dark btn-sm" asp-action="Edit" asp-route-id="@row.User.Id">
+                                    <partial name="_Icon" model='"pencil"' /> Düzenle
+                                </a>
                             </td>
                         </tr>
                     }

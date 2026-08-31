@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantMenu.Business.Abstract;
+using RestaurantMenu.Business.Dtos;
 using RestaurantMenu.Business.Orders;
 using RestaurantMenu.Entities.Enums;
 using RestaurantMenu.Entities.Identity;
@@ -9,7 +10,7 @@ using RestaurantMenu.WebUI.Infrastructure;
 namespace RestaurantMenu.WebUI.Areas.Kitchen.Controllers;
 
 [Area("Kitchen")]
-[Authorize(Roles = $"{AppRoles.Mutfak},{AppRoles.Admin}")]
+[Authorize(Roles = $"{AppRoles.Mutfak},{AppRoles.Admin},{AppRoles.Sahip}")]
 public class KitchenOrdersController : Controller
 {
     private readonly IOrderService _orders;
@@ -24,7 +25,9 @@ public class KitchenOrdersController : Controller
     public async Task<IActionResult> Index()
     {
         var restaurantId = _current.Id!.Value;
-        ViewBag.OtherWork = await _orders.GetKitchenWorkElsewhereAsync(restaurantId);
+        ViewBag.OtherWork = User.IsInRole(AppRoles.Admin)
+            ? await _orders.GetKitchenWorkElsewhereAsync(restaurantId)
+            : Array.Empty<RestaurantWorkDto>();
         ViewBag.PastOrders = await _orders.GetPastOrdersAsync(restaurantId);
         return View(await _orders.GetKitchenOrdersAsync(restaurantId));
     }

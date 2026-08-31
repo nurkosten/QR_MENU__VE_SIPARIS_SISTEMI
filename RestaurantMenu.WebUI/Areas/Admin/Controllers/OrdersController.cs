@@ -10,7 +10,7 @@ using RestaurantMenu.WebUI.Infrastructure;
 namespace RestaurantMenu.WebUI.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = AppRoles.Admin)]
+[Authorize(Roles = AppRoles.Managers)]
 public class OrdersController : Controller
 {
     private readonly IOrderService _orders;

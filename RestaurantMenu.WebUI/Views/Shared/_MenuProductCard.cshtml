@@ -1,0 +1,58 @@
+@model Product
+@{
+    var restaurantToken = (string)ViewData["RestaurantToken"]!;
+    var qrToken = (string)ViewData["QrToken"]!;
+    var tableId = ViewData["TableId"];
+    var featuredId = ViewData["FeaturedId"] as int?;
+    var isHit = featuredId == Model.Id;
+}
+
+<article class="product-card product-tile" id="urun-@Model.Id">
+    <div class="product-media">
+        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" alt="@Model.Name" loading="lazy" />
+        }
+        else
+        {
+            <span class="product-media-fallback" aria-hidden="true"><partial name="_Icon" model='"dish"' /></span>
+        }
+        <div class="product-media-shade"></div>
+        @if (isHit)
+        {
+            <span class="product-badge"><partial name="_Icon" model='"star"' /> En çok tercih edilen</span>
+        }
+        <span class="product-price-chip">@Model.Price.ToString("C")</span>
+    </div>
+    <div class="product-body">
+        <div class="product-name">@Model.Name</div>
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <p class="product-desc">@Model.Description</p>
+        }
+
+        <form asp-controller="Cart" asp-action="Add" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="restaurantToken" value="@restaurantToken" />
+            <input type="hidden" name="tableToken" value="@qrToken" />
+            <input type="hidden" name="tableId" value="@tableId" />
+            <input type="hidden" name="productId" value="@Model.Id" />
+            <div class="product-form">
+                <span class="qty">
+                    <button type="button" class="qty-btn" data-step="down" aria-label="Azalt">&minus;</button>
+                    <input type="number" name="quantity" value="1" min="1" max="20" inputmode="numeric" aria-label="Adet" />
+                    <button type="button" class="qty-btn" data-step="up" aria-label="Artır">&plus;</button>
+                </span>
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                    <partial name="_Icon" model='"plus"' /> Sepete ekle
+                </button>
+            </div>
+            <div class="product-note">
+                <button type="button" class="note-toggle" data-note-toggle="not-@Model.Id">+ Not ekle</button>
+                <div id="not-@Model.Id" class="mt-2" hidden>
+                    <input name="note" class="form-control form-control-sm" placeholder="Örn. az acılı, soğansız" maxlength="200" />
+                </div>
+            </div>
+        </form>
+    </div>
+</article>

@@ -19,7 +19,8 @@ public class RestaurantSwitcherViewComponent : ViewComponent
         return View(new RestaurantSwitcherViewModel
         {
             Restaurants = await _current.ListAsync(),
-            SelectedId = _current.Id
+            SelectedId = _current.Id,
+            CanSwitch = _current.CanSwitch
         });
     }
 }

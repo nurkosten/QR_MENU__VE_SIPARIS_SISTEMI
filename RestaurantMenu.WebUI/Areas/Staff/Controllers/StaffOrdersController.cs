@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantMenu.Business.Abstract;
+using RestaurantMenu.Business.Dtos;
 using RestaurantMenu.Business.Orders;
 using RestaurantMenu.Entities.Enums;
 using RestaurantMenu.Entities.Identity;
@@ -10,7 +11,7 @@ using RestaurantMenu.WebUI.Infrastructure;
 namespace RestaurantMenu.WebUI.Areas.Staff.Controllers;
 
 [Area("Staff")]
-[Authorize(Roles = $"{AppRoles.Personel},{AppRoles.Admin}")]
+[Authorize(Roles = $"{AppRoles.Personel},{AppRoles.Admin},{AppRoles.Sahip}")]
 public class StaffOrdersController : Controller
 {
     private readonly IOrderService _orders;
@@ -40,7 +41,9 @@ public class StaffOrdersController : Controller
         ViewBag.Requests = openRequests;
         var stats = await _reports.GetDashboardAsync(restaurantId);
         ViewBag.TodayOrderCount = stats.TodayOrderCount;
-        ViewBag.OtherWork = await _orders.GetStaffWorkElsewhereAsync(restaurantId);
+        ViewBag.OtherWork = User.IsInRole(AppRoles.Admin)
+            ? await _orders.GetStaffWorkElsewhereAsync(restaurantId)
+            : Array.Empty<RestaurantWorkDto>();
         ViewBag.PastOrders = await _orders.GetPastOrdersAsync(restaurantId);
         return View(await _orders.GetStaffOrdersAsync(restaurantId));
     }

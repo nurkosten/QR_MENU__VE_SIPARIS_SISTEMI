@@ -7,7 +7,7 @@ using RestaurantMenu.WebUI.Infrastructure;
 
 namespace RestaurantMenu.WebUI.Controllers;
 
-[Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Personel},{AppRoles.Mutfak}")]
+[Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Sahip},{AppRoles.Personel},{AppRoles.Mutfak}")]
 public class WorkspaceController : Controller
 {
     private readonly AppDbContext _db;
@@ -23,6 +23,11 @@ public class WorkspaceController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Select(int id)
     {
+        if (!User.IsInRole(AppRoles.Admin))
+        {
+            return Forbid();
+        }
+
         var exists = await _db.Restaurants.AnyAsync(r => r.Id == id);
         if (!exists)
         {

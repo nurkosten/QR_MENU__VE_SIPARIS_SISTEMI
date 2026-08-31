@@ -11,7 +11,7 @@ using RestaurantMenu.WebUI.ViewModels;
 namespace RestaurantMenu.WebUI.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = AppRoles.Admin)]
+[Authorize(Roles = AppRoles.Managers)]
 public class RestaurantController : Controller
 {
     private readonly AppDbContext _db;
@@ -27,6 +27,7 @@ public class RestaurantController : Controller
         _current = current;
     }
 
+    [Authorize(Roles = AppRoles.Admin)]
     public async Task<IActionResult> Index()
     {
         await _current.EnsureAsync();
@@ -49,10 +50,12 @@ public class RestaurantController : Controller
         return View(list);
     }
 
+    [Authorize(Roles = AppRoles.Admin)]
     public IActionResult Create() => View(new RestaurantFormViewModel { IsActive = true });
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = AppRoles.Admin)]
     public async Task<IActionResult> Create(RestaurantFormViewModel model, IFormFile? logo)
     {
         if (!ModelState.IsValid)
@@ -101,10 +104,12 @@ public class RestaurantController : Controller
     public async Task<IActionResult> Edit(int? id)
     {
         await _current.EnsureAsync();
-        var restaurantId = id ?? _current.Id;
+        var restaurantId = User.IsInRole(AppRoles.Admin) ? id ?? _current.Id : _current.Id;
         if (restaurantId is null)
         {
-            return RedirectToAction(nameof(Create));
+            return User.IsInRole(AppRoles.Admin)
+                ? RedirectToAction(nameof(Create))
+                : (IActionResult)View("~/Views/Shared/NoRestaurant.cshtml");
         }
 
         var entity = await _db.Restaurants.FirstOrDefaultAsync(r => r.Id == restaurantId);
@@ -120,6 +125,12 @@ public class RestaurantController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(RestaurantFormViewModel model, IFormFile? logo)
     {
+        await _current.EnsureAsync();
+        if (!User.IsInRole(AppRoles.Admin) && model.Id != _current.Id)
+        {
+            return Forbid();
+        }
+
         if (string.IsNullOrWhiteSpace(model.PublicToken))
         {
             ModelState.AddModelError(nameof(model.PublicToken), "Genel erişim kodu gerekli.");

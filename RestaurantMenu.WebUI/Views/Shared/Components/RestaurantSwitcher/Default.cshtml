@@ -9,10 +9,15 @@
     {
         <a class="rest-switch-empty" asp-area="Admin" asp-controller="Restaurant" asp-action="Create">Restoran ekle</a>
     }
+    else
+    {
+        <div class="rest-switch-label">Restoran atanmadı</div>
+    }
 }
-else if (restaurants.Count == 1)
+else if (!Model.CanSwitch || restaurants.Count == 1)
 {
-    <div class="rest-switch-label" title="@restaurants[0].Name">@restaurants[0].Name</div>
+    var name = restaurants.FirstOrDefault(r => r.Id == Model.SelectedId)?.Name ?? restaurants[0].Name;
+    <div class="rest-switch-label" title="@name">@name</div>
 }
 else
 {

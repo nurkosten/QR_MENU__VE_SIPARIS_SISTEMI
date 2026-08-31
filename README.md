@@ -28,26 +28,29 @@ Visual Studio veya Cursor ile `RestaurantMenu.slnx` dosyasını açın. Proje be
 | Rol | E-posta | Şifre |
 |-----|---------|--------|
 | Admin | admin@restaurant.local | Admin123! |
+| Restoran sahibi | sahip@restaurant.local | Sahip123! |
 | Personel | personel@restaurant.local | Personel123! |
 | Mutfak | mutfak@restaurant.local | Mutfak123! |
 
 ## Roller (proje dosyası §4)
 
-| İşlem | Müşteri | Personel | Mutfak | Admin |
-|--------|---------|----------|--------|-------|
-| Menü | evet | evet | evet | evet |
-| Sepet / sipariş | evet | evet | hayır | evet |
-| Durum değiştirme | hayır | evet | evet | evet |
-| Kategori / ürün / masa / QR / kullanıcı | hayır | hayır | hayır | evet |
-| Rapor | hayır | hayır | hayır | evet |
-| Garson çağrısı | oluşturur | yönetir | hayır | evet |
+| İşlem | Müşteri | Personel | Mutfak | Sahip | Admin |
+|--------|---------|----------|--------|-------|-------|
+| Menü | evet | evet | evet | evet | evet |
+| Sepet / sipariş | evet | evet | hayır | evet | evet |
+| Durum değiştirme | hayır | evet | evet | evet | evet |
+| Kategori / ürün / masa / QR | hayır | hayır | hayır | kendi restoranı | evet |
+| Kullanıcı | hayır | hayır | hayır | kendi personeli | evet |
+| Restoran ekleme | hayır | hayır | hayır | hayır | evet |
+| Rapor | hayır | hayır | hayır | kendi restoranı | evet |
+| Garson çağrısı | oluşturur | yönetir | hayır | evet | evet |
 
 ## Fonksiyonel karşılık (FR)
 
 | ID | Gereksinim | Uygulama |
 |----|------------|----------|
 | FR-01 | Giriş / yetki | `AccountController` + Identity |
-| FR-02 | İşletme / çoklu restoran | Admin → Restoranlar (ekle, seç). Menü, masa, sipariş ve raporlar seçili restorana göre gelir |
+| FR-02 | İşletme / çoklu restoran | Admin → Restoranlar (ekle, seç). Sahip yalnızca kendi restoranını düzenler. Menü, masa, sipariş ve raporlar seçili restorana göre gelir |
 | FR-03 | Kategori | Admin → Kategoriler (`DisplayOrder`, aktif/pasif) |
 | FR-04 | Ürün | Admin → Ürünler (fiyat, görsel, satış durumu) |
 | FR-05 | Masa | Admin → Masalar |

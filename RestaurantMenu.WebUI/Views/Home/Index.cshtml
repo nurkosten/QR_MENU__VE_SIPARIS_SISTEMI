@@ -2,7 +2,10 @@
 @{
     ViewData["Title"] = Model?.Name ?? "QR Restoran Menü";
     var isStaff = User.Identity?.IsAuthenticated == true
-        && (User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.Personel) || User.IsInRole(AppRoles.Mutfak));
+        && (User.IsInRole(AppRoles.Admin)
+            || User.IsInRole(AppRoles.Sahip)
+            || User.IsInRole(AppRoles.Personel)
+            || User.IsInRole(AppRoles.Mutfak));
 }
 
 <section class="menu-hero mb-4">
@@ -36,7 +39,7 @@
             <p class="empty-text">
                 Menü masadaki QR kod ile açılır. Şu anda bu işletme için aktif bir masa bulunmuyor.
             </p>
-            @if (isStaff && User.IsInRole(AppRoles.Admin))
+            @if (isStaff && (User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.Sahip)))
             {
                 <a class="btn btn-primary btn-sm" asp-area="Admin" asp-controller="Tables" asp-action="Create">
                     <partial name="_Icon" model='"plus"' /> Masa oluştur

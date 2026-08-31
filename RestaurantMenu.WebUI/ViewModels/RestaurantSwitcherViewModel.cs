@@ -7,4 +7,6 @@ public class RestaurantSwitcherViewModel
     public IReadOnlyList<Restaurant> Restaurants { get; set; } = [];
 
     public int? SelectedId { get; set; }
+
+    public bool CanSwitch { get; set; }
 }
