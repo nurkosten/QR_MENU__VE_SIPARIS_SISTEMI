@@ -18,21 +18,32 @@
     {
         currentIndex = steps.Length - 1;
     }
+
+    var currentLabel = isCancelled
+        ? "Sipariş iptal edildi"
+        : currentIndex < 0
+            ? DisplayTexts.OrderStatus(Model.Status)
+            : steps[currentIndex].Label;
 }
 
 <div class="page-head">
     <div>
         <span class="chip brand mb-2"><span class="live-dot"></span> Canlı takip</span>
-        <h1>Sipariş @Model.OrderNumber</h1>
-        <p class="page-sub">@Model.Table.Name · @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</p>
-    </div>
-    <div class="page-actions">
-        <a class="btn btn-outline-dark btn-sm" asp-controller="Menu" asp-action="Index"
-           asp-route-restaurantToken="@restaurantToken" asp-route-tableToken="@tableToken" asp-route-tableId="@ViewBag.TableId">
-            <partial name="_Icon" model='"arrow-left"' /> Menüye dön
-        </a>
+        <h1>Sipariş takip</h1>
+        <p class="page-sub">@Model.OrderNumber · @Model.Table.Name</p>
     </div>
 </div>
+
+@if (!isCancelled)
+{
+    <div class="track-hero">
+        <div class="track-ring">
+            <div class="track-ring-inner"><partial name="_Icon" model='"scooter"' /></div>
+        </div>
+        <p class="track-status">@currentLabel</p>
+        <p class="track-hint">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</p>
+    </div>
+}
 
 <div class="row g-3">
     <div class="col-lg-6">

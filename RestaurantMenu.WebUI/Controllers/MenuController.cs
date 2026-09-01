@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RestaurantMenu.Business.Abstract;
 using RestaurantMenu.Entities.Identity;
 using RestaurantMenu.WebUI.Infrastructure;
+using RestaurantMenu.WebUI.Models;
 using RestaurantMenu.WebUI.ViewModels;
 
 namespace RestaurantMenu.WebUI.Controllers;
@@ -59,17 +60,32 @@ public class MenuController : Controller
             return View("InvalidQr", menu.Error);
         }
 
-        var cart = HttpContext.Session.GetCart();
+        var cart = HttpContext.Session.GetCart() ?? new CartSession();
+        if (!string.Equals(cart.RestaurantToken, restaurantToken, StringComparison.Ordinal))
+        {
+            cart.Lines.Clear();
+        }
+
+        cart.RestaurantToken = restaurantToken;
+        cart.TableToken = tableToken;
+        if (menu.Data!.Table is not null)
+        {
+            cart.TableId = menu.Data.Table.Id;
+            cart.TableName = menu.Data.Table.Name;
+        }
+
+        HttpContext.Session.SetCart(cart);
+
         var model = new MenuPageViewModel
         {
-            Restaurant = menu.Data!.Restaurant,
+            Restaurant = menu.Data.Restaurant,
             Table = menu.Data.Table,
             ActiveTables = menu.Data.ActiveTables,
             MenuQrToken = tableToken,
             Categories = menu.Data.Categories,
             Search = q,
             CategoryId = categoryId,
-            CartCount = cart?.Lines.Sum(x => x.Quantity) ?? 0
+            CartCount = cart.Lines.Sum(x => x.Quantity)
         };
 
         if (model.Table is not null && (!string.IsNullOrWhiteSpace(q) || categoryId is > 0))

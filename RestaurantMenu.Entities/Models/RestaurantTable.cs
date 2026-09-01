@@ -12,6 +12,10 @@ public class RestaurantTable : BaseEntity
 
     public string QrToken { get; set; } = string.Empty;
 
+    public string? GuestSessionHash { get; set; }
+
+    public DateTime? GuestSessionExpiresAt { get; set; }
+
     public Restaurant Restaurant { get; set; } = null!;
 
     public ICollection<Order> Orders { get; set; } = new List<Order>();

@@ -191,7 +191,8 @@ public class CartController : Controller
                     Name = product?.Name ?? "Ürün",
                     UnitPrice = product?.Price ?? 0,
                     Quantity = line.Quantity,
-                    Note = line.Note
+                    Note = line.Note,
+                    ImageUrl = product?.ImageUrl
                 };
             }).ToList()
         };

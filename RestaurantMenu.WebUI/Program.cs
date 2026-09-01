@@ -49,6 +49,7 @@ builder.Services.AddScoped<IServiceRequestService, ServiceRequestManager>();
 builder.Services.AddScoped<IReportService, ReportManager>();
 builder.Services.AddScoped<IActivityLogService, ActivityLogManager>();
 builder.Services.AddScoped<IQrCodeService, QrCodeManager>();
+builder.Services.AddScoped<ITableGuestSession, TableGuestSessionManager>();
 builder.Services.AddScoped<ICurrentRestaurant, CurrentRestaurant>();
 builder.Services.AddScoped<CurrentRestaurantFilter>();
 builder.Services.AddSingleton<IActivityLogQueue, HangfireActivityLogQueue>();

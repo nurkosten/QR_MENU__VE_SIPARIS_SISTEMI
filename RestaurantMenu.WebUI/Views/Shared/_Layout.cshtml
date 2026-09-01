@@ -2,19 +2,24 @@
     var cart = Context.Session.GetCart();
     var cartCount = cart?.Lines.Sum(l => l.Quantity) ?? 0;
     var cartTable = cart?.TableName;
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var isMenu = string.Equals(controller, "Menu", StringComparison.OrdinalIgnoreCase);
+    var isCart = string.Equals(controller, "Cart", StringComparison.OrdinalIgnoreCase);
+    var hasTable = !string.IsNullOrWhiteSpace(cart?.RestaurantToken) && !string.IsNullOrWhiteSpace(cart?.TableToken);
 }
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#10161f" />
+    <meta name="theme-color" content="#000000" />
     <title>@ViewData["Title"] · QR Menü</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/customer.css" asp-append-version="true" />
 </head>
 <body class="guest-ui">
     <div class="page-wrap">
@@ -24,21 +29,13 @@
                     <span class="brand-mark"><partial name="_Icon" model='"dish"' /></span>
                     <span>
                         <span class="brand-name d-block">QR Menü</span>
-                        <span class="brand-sub">@(cartTable ?? "Dijital sipariş")</span>
+                        <span class="brand-sub">@(string.IsNullOrWhiteSpace(cartTable) ? "Dijital sipariş" : cartTable)</span>
                     </span>
                 </a>
                 <div class="topbar-spacer"></div>
-                @if (cartCount > 0)
-                {
-                    <a class="btn btn-soft btn-sm" asp-controller="Cart" asp-action="Index">
-                        <partial name="_Icon" model='"bag"' />
-                        <span class="d-none d-sm-inline">Sepet</span>
-                        <span class="cart-count-badge">@cartCount</span>
-                    </a>
-                }
-                <a class="btn btn-outline-dark btn-sm" asp-controller="Account" asp-action="Login">
+                <a class="guest-icon-btn" asp-controller="Account" asp-action="Login" title="Personel girişi">
                     <partial name="_Icon" model='"shield"' />
-                    <span class="d-none d-sm-inline">Personel girişi</span>
+                    <span class="visually-hidden">Personel girişi</span>
                 </a>
             </div>
         </header>
@@ -48,14 +45,36 @@
                 @RenderBody()
             </div>
         </main>
-
-        <footer class="site-footer">
-            <div class="page-shell d-flex flex-wrap justify-content-between gap-2">
-                <span>QR Restoran Menü ve Sipariş Yönetim Sistemi</span>
-                <span>&copy; @DateTime.Now.Year</span>
-            </div>
-        </footer>
     </div>
+
+    <nav class="guest-dock" aria-label="Misafir gezinti">
+        @if (hasTable)
+        {
+            <a class="dock-item @(isMenu ? "on" : "")"
+               asp-controller="Menu" asp-action="Index"
+               asp-route-restaurantToken="@cart!.RestaurantToken"
+               asp-route-tableToken="@cart.TableToken"
+               asp-route-tableId="@cart.TableId">
+                <partial name="_Icon" model='"dish"' />
+                Menü
+            </a>
+        }
+        else
+        {
+            <a class="dock-item @(isMenu ? "on" : "")" asp-controller="Home" asp-action="Index">
+                <partial name="_Icon" model='"dish"' />
+                Menü
+            </a>
+        }
+        <a class="dock-item @(isCart ? "on" : "")" asp-controller="Cart" asp-action="Index">
+            <partial name="_Icon" model='"bag"' />
+            @if (cartCount > 0)
+            {
+                <span class="dock-badge">@cartCount</span>
+            }
+            Sepet
+        </a>
+    </nav>
 
     <partial name="_Toasts" />
 

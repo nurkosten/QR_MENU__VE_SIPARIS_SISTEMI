@@ -1,0 +1,27 @@
+@model MenuEnterViewModel
+@{
+    ViewData["Title"] = "Menüye bağlan";
+}
+
+<div class="state-page" data-menu-enter>
+    <div>
+        <div class="empty-icon"><partial name="_Icon" model='"qr"' /></div>
+        <h1 class="state-title">@Model.RestaurantName</h1>
+        <p class="state-text menu-enter-wait">
+            @Model.TableName için bağlantı kuruluyor. Lütfen bekleyin…
+        </p>
+        <p class="state-text menu-enter-private" hidden>
+            Gizli veya özel sekmede menü açılamaz. Masadaki QR kodunu normal tarayıcıda okutun.
+        </p>
+        <p class="state-text menu-enter-js">
+            Menüyü açmak için tarayıcınızda JavaScript açık olmalıdır.
+        </p>
+        <form asp-action="Enter" asp-route-restaurantToken="@Model.RestaurantToken" asp-route-tableToken="@Model.TableToken"
+              method="post" class="menu-enter-form" hidden data-no-loading>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="tableId" value="@Model.TableId" />
+            <input type="hidden" name="q" value="@Model.Search" />
+            <input type="hidden" name="categoryId" value="@Model.CategoryId" />
+        </form>
+    </div>
+</div>

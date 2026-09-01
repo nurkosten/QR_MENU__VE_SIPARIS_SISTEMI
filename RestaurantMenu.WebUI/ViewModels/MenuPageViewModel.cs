@@ -22,6 +22,23 @@ public class MenuPageViewModel
     public int CartCount { get; set; }
 }
 
+public class MenuEnterViewModel
+{
+    public string RestaurantName { get; set; } = string.Empty;
+
+    public string TableName { get; set; } = string.Empty;
+
+    public string RestaurantToken { get; set; } = string.Empty;
+
+    public string TableToken { get; set; } = string.Empty;
+
+    public int TableId { get; set; }
+
+    public string? Search { get; set; }
+
+    public int? CategoryId { get; set; }
+}
+
 public class CartPageViewModel
 {
     public RestaurantTable Table { get; set; } = null!;
@@ -46,6 +63,8 @@ public class CartLineView
     public int Quantity { get; set; }
 
     public string? Note { get; set; }
+
+    public string? ImageUrl { get; set; }
 
     public decimal LineTotal => UnitPrice * Quantity;
 }

@@ -54,6 +54,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(x => x.Name).IsRequired().HasMaxLength(80);
             entity.Property(x => x.QrToken).IsRequired().HasMaxLength(64);
             entity.HasIndex(x => x.QrToken).IsUnique();
+            entity.Property(x => x.GuestSessionHash).HasMaxLength(64);
             entity.HasIndex(x => new { x.RestaurantId, x.TableNumber }).IsUnique();
             entity.HasOne(x => x.Restaurant)
                 .WithMany(x => x.Tables)

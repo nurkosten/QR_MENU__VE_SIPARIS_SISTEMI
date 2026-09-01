@@ -6,7 +6,7 @@
 
 <div class="page-head">
     <div>
-        <h1>Sepetiniz</h1>
+        <h1>Sepetim</h1>
         <p class="page-sub">
             @if (Model.Table is not null)
             {
@@ -15,18 +15,6 @@
             <span>@itemCount ürün</span>
         </p>
     </div>
-    @if (Model.Table is not null && Model.Restaurant is not null)
-    {
-        <div class="page-actions">
-            <a class="btn btn-outline-dark btn-sm"
-               asp-controller="Menu" asp-action="Index"
-               asp-route-restaurantToken="@Model.Restaurant.PublicToken"
-               asp-route-tableToken="@Model.Table.QrToken"
-               asp-route-tableId="@Model.Table.Id">
-                <partial name="_Icon" model='"arrow-left"' /> Menüye dön
-            </a>
-        </div>
-    }
 </div>
 
 @if (Model.Lines.Count == 0)
@@ -35,79 +23,75 @@
         <div class="empty">
             <div class="empty-icon"><partial name="_Icon" model='"bag"' /></div>
             <div class="empty-title">Sepetiniz boş</div>
-            <p class="empty-text">Menüden ürün ekleyerek siparişinizi oluşturabilirsiniz.</p>
-            <a class="btn btn-primary btn-sm" asp-controller="Home" asp-action="Index">Menüye git</a>
+            <p class="empty-text">Menüden + ile ürün ekleyerek siparişinizi oluşturabilirsiniz.</p>
         </div>
     </div>
 }
 else
 {
-    <div class="row g-3">
-        <div class="col-lg-7">
-            <div class="panel">
-                <div class="panel-head">
-                    <h2 class="panel-title">Ürünler</h2>
-                    <span class="chip">@Model.Lines.Count satır</span>
-                </div>
-                @foreach (var line in Model.Lines)
+    <div class="panel cart-panel">
+        @foreach (var line in Model.Lines)
+        {
+            <div class="cart-line">
+                @if (!string.IsNullOrWhiteSpace(line.ImageUrl))
                 {
-                    <div class="cart-line">
-                        <div class="min-w-0">
-                            <div class="cart-line-name">@line.Name</div>
-                            <div class="cart-line-meta">@line.UnitPrice.ToString("C") × @line.Quantity</div>
-                            @if (!string.IsNullOrWhiteSpace(line.Note))
-                            {
-                                <div class="cart-line-meta">Not: @line.Note</div>
-                            }
-                        </div>
-                        <div class="cart-line-total">@line.LineTotal.ToString("C")</div>
-                        <div class="cart-line-actions">
-                            <form asp-action="Update" method="post" class="d-flex gap-2 align-items-center">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="productId" value="@line.ProductId" />
-                                <input type="hidden" name="note" value="@line.Note" />
-                                <span class="qty">
-                                    <button type="button" class="qty-btn" data-step="down" aria-label="Azalt">&minus;</button>
-                                    <input type="number" name="quantity" value="@line.Quantity" min="0" max="20" inputmode="numeric" aria-label="Adet" />
-                                    <button type="button" class="qty-btn" data-step="up" aria-label="Artır">&plus;</button>
-                                </span>
-                                <button type="submit" class="btn btn-outline-dark btn-sm">Güncelle</button>
-                            </form>
-                            <form asp-action="Remove" method="post">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="productId" value="@line.ProductId" />
-                                <input type="hidden" name="note" value="@line.Note" />
-                                <button type="submit" class="btn btn-ghost btn-sm">Kaldır</button>
-                            </form>
-                        </div>
-                    </div>
+                    <img class="cart-thumb" src="@line.ImageUrl" alt="" />
                 }
+                else
+                {
+                    <span class="cart-thumb" aria-hidden="true"><partial name="_Icon" model='"dish"' /></span>
+                }
+                <div class="min-w-0">
+                    <div class="cart-line-name">@line.Name</div>
+                    @if (!string.IsNullOrWhiteSpace(line.Note))
+                    {
+                        <div class="cart-line-meta">Not: @line.Note</div>
+                    }
+                    <div class="cart-line-total">@line.LineTotal.ToString("C")</div>
+                </div>
+                <form asp-action="Update" method="post" class="cart-qty-form" data-no-loading>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@line.ProductId" />
+                    <input type="hidden" name="note" value="@line.Note" />
+                    <span class="qty">
+                        <button type="button" class="qty-btn" data-step="down" aria-label="Azalt">&minus;</button>
+                        <input type="number" name="quantity" value="@line.Quantity" min="0" max="20" inputmode="numeric" aria-label="Adet" />
+                        <button type="button" class="qty-btn" data-step="up" aria-label="Artır">&plus;</button>
+                    </span>
+                    <button type="submit" class="visually-hidden">Güncelle</button>
+                </form>
             </div>
-        </div>
+        }
+    </div>
 
-        <div class="col-lg-5">
-            <div class="panel">
-                <div class="panel-head">
-                    <h2 class="panel-title">Sipariş özeti</h2>
-                </div>
-                <div class="panel-body">
-                    <div class="summary mb-3">
-                        <div class="summary-row"><span>Ürün adedi</span><span>@itemCount</span></div>
-                        <div class="summary-row"><span>Ara toplam</span><span>@Model.Total.ToString("C")</span></div>
-                        <div class="summary-row total"><span>Toplam</span><span>@Model.Total.ToString("C")</span></div>
-                    </div>
-                    <form asp-action="Checkout" method="post">
-                        @Html.AntiForgeryToken()
-                        <label class="form-label" for="customerNote">Sipariş notu</label>
-                        <textarea id="customerNote" name="customerNote" class="form-control" rows="3"
-                                  placeholder="Mutfağa iletmek istediğiniz bir not var mı?" maxlength="300"></textarea>
-                        <button type="submit" class="btn btn-primary btn-lg btn-block mt-3">
-                            <partial name="_Icon" model='"check"' /> Siparişi mutfağa gönder
-                        </button>
-                        <p class="field-hint text-center mt-2">Gönderdikten sonra siparişinizi canlı takip edebilirsiniz.</p>
-                    </form>
-                </div>
+    <div class="panel cart-summary">
+        <div class="panel-body">
+            <div class="summary mb-3">
+                <div class="summary-row"><span>Ara toplam</span><span>@Model.Total.ToString("C")</span></div>
+                <div class="summary-row"><span>Servis</span><span>Masaya</span></div>
+                <div class="summary-row total"><span>Toplam</span><span>@Model.Total.ToString("C")</span></div>
             </div>
+            <form asp-action="Checkout" method="post">
+                @Html.AntiForgeryToken()
+                <label class="form-label" for="customerNote">Sipariş notu</label>
+                <textarea id="customerNote" name="customerNote" class="form-control" rows="2"
+                          placeholder="Mutfağa iletmek istediğiniz bir not var mı?" maxlength="300"></textarea>
+                <button type="submit" class="cta-bar mt-3">
+                    <span>Siparişi tamamla</span>
+                    <span class="cta-orb"><partial name="_Icon" model='"arrow-right"' /></span>
+                </button>
+            </form>
         </div>
     </div>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".cart-qty-form .qty-btn").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                var form = btn.closest("form");
+                setTimeout(function () { form.requestSubmit(); }, 0);
+            });
+        });
+    </script>
 }

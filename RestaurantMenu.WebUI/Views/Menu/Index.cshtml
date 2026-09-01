@@ -6,15 +6,22 @@
     var isFiltered = Model.CategoryId is not null || !string.IsNullOrWhiteSpace(Model.Search);
     var qrToken = Model.MenuQrToken;
     var tableId = Model.Table?.Id;
+    string CategoryIcon(string name)
+    {
+        var n = name.ToLowerInvariant();
+        if (n.Contains("burger") || n.Contains("yemek") || n.Contains("ana")) return "dish";
+        if (n.Contains("tatlı") || n.Contains("tatli")) return "star";
+        if (n.Contains("sıcak") || n.Contains("sicak") || n.Contains("kahve") || n.Contains("çay")) return "flame";
+        if (n.Contains("soğuk") || n.Contains("soguk") || n.Contains("içecek") || n.Contains("icecek")) return "cup";
+        return "layers";
+    }
 }
 
 <div class="menu-stage">
 <section class="menu-hero">
     <span class="hero-orb hero-orb-a" aria-hidden="true"></span>
-    <span class="hero-orb hero-orb-b" aria-hidden="true"></span>
-    <span class="hero-orb hero-orb-c" aria-hidden="true"></span>
     <div class="hero-copy">
-        <p class="hero-kicker">Menü açık</p>
+        <p class="hero-kicker">Dijital menü</p>
         <div class="hero-title-row">
             @if (!string.IsNullOrWhiteSpace(Model.Restaurant.LogoUrl))
             {
@@ -22,7 +29,7 @@
             }
             <h1>@Model.Restaurant.Name</h1>
         </div>
-        <p class="hero-note">@(Model.Table?.Name ?? "Masa") için dijital menü. Seçiminizi yapın, sipariş doğrudan bu masaya iletilsin.</p>
+        <p class="hero-note">@(Model.Table?.Name ?? "Masa") için hazır. Seçiminiz doğrudan bu masaya gider.</p>
         <div class="hero-meta">
             @if (Model.Table is not null)
             {
@@ -49,11 +56,17 @@
         </form>
         <nav class="cat-nav" aria-label="Kategoriler">
             <a class="cat-chip @(Model.CategoryId is null ? "on" : "")"
-               href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = qrToken, tableId, q = Model.Search })">Tümü</a>
+               href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = qrToken, tableId, q = Model.Search })">
+                <span class="cat-ico"><partial name="_Icon" model='"layers"' /></span>
+                Tümü
+            </a>
             @foreach (var category in Model.Categories)
             {
                 <a class="cat-chip @(Model.CategoryId == category.Id ? "on" : "")"
-                   href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = qrToken, tableId, categoryId = category.Id, q = Model.Search })">@category.Name</a>
+                   href="@Url.Action("Index", new { restaurantToken = Model.Restaurant.PublicToken, tableToken = qrToken, tableId, categoryId = category.Id, q = Model.Search })">
+                    <span class="cat-ico"><partial name="_Icon" model="CategoryIcon(category.Name)" /></span>
+                    @category.Name
+                </a>
             }
         </nav>
     </div>
@@ -109,6 +122,9 @@
     }
     else
     {
+        ViewData["RestaurantToken"] = Model.Restaurant.PublicToken;
+        ViewData["QrToken"] = qrToken;
+        ViewData["TableId"] = tableId;
         foreach (var category in visibleCategories)
         {
             <section class="menu-section" id="kategori-@category.Id">
@@ -119,64 +135,10 @@
                 <div class="product-list">
                     @foreach (var product in category.Products)
                     {
-                        <article class="product-card">
-                            <div class="product-thumb">
-                                @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
-                                {
-                                    <img src="@product.ImageUrl" alt="@product.Name" loading="lazy" />
-                                }
-                                else
-                                {
-                                    <partial name="_Icon" model='"image"' />
-                                }
-                            </div>
-                            <div class="product-body">
-                                <div class="product-name">@product.Name</div>
-                                @if (!string.IsNullOrWhiteSpace(product.Description))
-                                {
-                                    <p class="product-desc">@product.Description</p>
-                                }
-                                <div class="product-price">@product.Price.ToString("C")</div>
-
-                                <form asp-controller="Cart" asp-action="Add" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="restaurantToken" value="@Model.Restaurant.PublicToken" />
-                                    <input type="hidden" name="tableToken" value="@qrToken" />
-                                    <input type="hidden" name="tableId" value="@tableId" />
-                                    <input type="hidden" name="productId" value="@product.Id" />
-                                    <div class="product-form">
-                                        <span class="qty">
-                                            <button type="button" class="qty-btn" data-step="down" aria-label="Azalt">&minus;</button>
-                                            <input type="number" name="quantity" value="1" min="1" max="20" inputmode="numeric" aria-label="Adet" />
-                                            <button type="button" class="qty-btn" data-step="up" aria-label="Artır">&plus;</button>
-                                        </span>
-                                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
-                                            <partial name="_Icon" model='"plus"' /> Sepete ekle
-                                        </button>
-                                    </div>
-                                    <div class="product-note">
-                                        <button type="button" class="note-toggle" data-note-toggle="not-@product.Id">+ Not ekle</button>
-                                        <div id="not-@product.Id" class="mt-2" hidden>
-                                            <input name="note" class="form-control form-control-sm" placeholder="Örn. az acılı, soğansız" maxlength="200" />
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </article>
+                        <partial name="_MenuProductCard" model="product" />
                     }
                 </div>
             </section>
         }
-    }
-
-    @if (Model.CartCount > 0)
-    {
-        <a class="cart-bar" asp-controller="Cart" asp-action="Index">
-            <span>
-                <span class="cart-bar-label d-block">Sepetiniz</span>
-                <span class="cart-bar-value">@Model.CartCount ürün</span>
-            </span>
-            <span class="cart-go">Sepete git <partial name="_Icon" model='"arrow-right"' /></span>
-        </a>
     }
 </div>
